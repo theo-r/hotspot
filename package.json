@@ -1,0 +1,10 @@
+{
+    "name": "hotspot",
+    "version": "1.0.0",
+    "main": "",
+    "author": "Theo Rutter",
+    "license": "MIT",
+    "scripts": {
+      "deploy":"cd aws && cdk deploy"
+    }
+  }

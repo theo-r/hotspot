@@ -1,0 +1,1 @@
+https://github.com/esteban-uo/aws-cdk-python-application-dependencies
