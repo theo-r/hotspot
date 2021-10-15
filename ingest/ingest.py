@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import sys
 from datetime import datetime
 import boto3
@@ -37,8 +38,11 @@ class IngestManager:
     def __init__(self):
         self._s3 = boto3.client('s3')
         self._ddb = boto3.resource('dynamodb')
-        self.watermark_table = self._ddb.Table("hotspot_watermark")
-        self.cache_table  = self._ddb.Table("hotspot_cache")
+        self.watermark_table_name = os.getenv('WATERMARK_TABLE_NAME')
+        self.cache_table_name = os.getenv('CACHE_TABLE_NAME')
+        self.bucket_name = os.getenv("BUCKET_NAME")
+        self.watermark_table = self._ddb.Table(self.watermark_table_name)
+        self.cache_table  = self._ddb.Table(self.cache_table_name)
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel(logging.INFO)
 
@@ -113,12 +117,12 @@ def lambda_handler(event, context):
         if not rp_json['cursors']:
             logger.info("No new tracks")
             continue
-            
+
         new_watermark = rp_json['cursors']['after']
         new_tracks = len(rp_json['items'])
         logger.info(f"Found {new_tracks} new track(s)")
         fname = datetime.utcnow().strftime(f"landing/{user_name}/%Y/%m/%d/%H-%M.json")
-        ingest_manager.upload_json('hotspot-recently-played', fname, rp_json)
+        ingest_manager.upload_json(ingest_manager.bucket_name, fname, rp_json)
         new_token_info = auth_manager.get_cached_token()
 
         if watermark != new_watermark:

@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 import boto3
 import awswrangler as wr
 import pandas as pd
@@ -27,32 +28,32 @@ cols = [
 
 def lambda_handler(event, context):
     logger.info(event)
-    bucket = event['detail']['requestParameters']['bucketName']
-    key = event['detail']['requestParameters']['key']
+    bucket = event['Records'][0]['s3']['bucket']['name']
+    glue_table_name = os.getenv("GLUE_TABLE_NAME")
+    glue_db_name = os.getenv("GLUE_DB_NAME")
+    key = event['Records'][0]['s3']['object']['key']
+    logger.info(f"{bucket}/{key}")
     user_name = key.split("/")[1]
-    r = s3.get_object(Bucket=bucket, Key=key)
-    # only take items, no cursors, context etc
-    rp_json = json.loads(r['Body'].read())['items']
+    spotipy_resp = s3.get_object(Bucket=bucket, Key=key)
+    logger.info(spotipy_resp)
+    rp_json = json.loads(spotipy_resp['Body'].read())['items']
     df = pd.DataFrame(rp_json)
     track = prep_data(df, user_name=user_name)
-    path = f"s3://hotspot-recently-played/new_test/data.parquet"
     partition_cols = ['user_name']
-    table = "new_test"
-    res = push_data(track, path, partition_cols, table)
+    res = push_data(track, partition_cols, glue_table_name, glue_db_name)
     logger.info(json.dumps(res, indent=2))
     return "200"
 
-def push_data(df, path, partition_cols, table):
+def push_data(df, partition_cols, table, database):
     return wr.s3.to_parquet(
         df=df,
-        path=path,
         mode="append",
         dataset=True,
         partition_cols=partition_cols,
-        database='sampledb',  # Athena/Glue database
+        database=database,  # Athena/Glue database
         table=table  # Athena/Glue table
     )
-    
+
 def prep_data(df, user_name: str):
     track = pd.json_normalize(df.track)
     played_at = df.played_at.copy()
