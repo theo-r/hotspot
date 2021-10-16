@@ -118,6 +118,12 @@ def lambda_handler(event, context):
             logger.info("No new tracks")
             continue
 
+        artists = sp.artists(
+            [item['track']['artists'][0]['id'] 
+            for item in rp_json['items']]
+        )
+        rp_json['artists'] = artists['artists']
+
         new_watermark = rp_json['cursors']['after']
         new_tracks = len(rp_json['items'])
         logger.info(f"Found {new_tracks} new track(s)")

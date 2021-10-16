@@ -129,6 +129,10 @@ class HotspotStack(cdk.Stack):
                 {
                     'name': 'dayofweek',
                     'type': glue.Schema.BIG_INT
+                },
+                {
+                    'name': 'genres',
+                    'type': glue.Schema.STRING
                 }
             ],
             partition_keys=[
