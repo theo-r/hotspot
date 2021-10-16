@@ -44,15 +44,17 @@ def lambda_handler(event, context):
     logger.info(json.dumps(res, indent=2))
     return "200"
 
+
 def push_data(df, partition_cols, table, database):
     return wr.s3.to_parquet(
         df=df,
         mode="append",
         dataset=True,
         partition_cols=partition_cols,
-        database=database,  # Athena/Glue database
-        table=table  # Athena/Glue table
+        database=database,
+        table=table
     )
+
 
 def prep_data(df, user_name: str):
     track = pd.json_normalize(df.track)

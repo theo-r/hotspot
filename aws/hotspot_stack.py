@@ -8,6 +8,7 @@ from aws_cdk import (
     aws_ssm as ssm,
     aws_glue as glue,
     aws_iam as iam,
+    aws_athena as athena,
     core as cdk
 )
 from aws_cdk.aws_lambda_python import PythonFunction
@@ -195,3 +196,56 @@ class HotspotStack(cdk.Stack):
                 year='*'),
         )
         rule.add_target(targets.LambdaFunction(ingest))
+
+        athena_workgroup = athena.CfnWorkGroup(
+            self,
+            'hotspotworkgroup',
+            name='hotspotworkgroup'
+        )
+        hotspot_user_policy = iam.Policy(
+            self,
+            'hotspot_user_policy',
+            statements=[
+                iam.PolicyStatement(
+                    actions=[
+                        "glue:GetDatabase",
+                        "s3:GetObject",
+                        "s3:getBucketLocation",
+                        "athena:StartQueryExecution",
+                        "athena:StopQueryExecution",
+                        "athena:GetQueryExecution",
+                        "athena:GetQueryResults",
+                        "athena:GetWorkGroup",
+                        "glue:GetPartition",
+                        "glue:GetPartitions",
+                        "s3:ListBucket",
+                        "glue:GetTable"
+                    ],
+                    resources=[
+                        f"{s3.bucket_arn}",
+                        f"{s3.bucket_arn}/{glue_table.table_name}/*",
+                        f"{glue_table.table_arn}",
+                        f"{glue_db.database_arn}",
+                        f"{glue_db.catalog_arn}",
+                        f"arn:aws:athena:{self.region}:{self.account}:workgroup/{athena_workgroup.name}"
+                    ]
+                ),
+                iam.PolicyStatement(
+                    actions=[
+                        "s3:PutObject",
+                        "s3:GetObject"
+                    ],
+                    resources=[
+                        f"{s3.bucket_arn}/athena-query-results/*"
+                    ]
+                )
+            ]
+        )
+
+        hotspot_user = iam.User(self, 'hotspot')
+        hotspot_user.attach_inline_policy(hotspot_user_policy)
+        hotspot_user_access_key = iam.CfnAccessKey(
+            self,
+            'hotspot_user_access_key',
+            user_name=hotspot_user.user_name
+        )
