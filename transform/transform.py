@@ -47,7 +47,6 @@ def lambda_handler(event, context):
     logger.info(json.dumps(res, indent=2))
     return "200"
 
-
 def push_data(df, partition_cols, table, database):
     return wr.s3.to_parquet(
         df=df,
@@ -58,7 +57,6 @@ def push_data(df, partition_cols, table, database):
         table=table
     )
 
-
 def prep_data(items_df, genres, user_name: str):
     track = pd.json_normalize(items_df.track)
     played_at = items_df.played_at.copy()
@@ -67,7 +65,7 @@ def prep_data(items_df, genres, user_name: str):
     album_image = [images[1]['url'] for images in track['album.images']]
     track['genres'] = genres
     track['artist.name'] = artist_name
-    track['album.image'] = album_image
+    track['album_image'] = album_image
     track['played_at'] = played_at
     track = track[cols]
     track['user_name'] = user_name
