@@ -12,9 +12,6 @@ from aws_cdk import (
     core as cdk
 )
 from aws_cdk.aws_lambda_python import PythonFunction
-import os
-import subprocess
-
 
 class HotspotStack(cdk.Stack):
 
@@ -131,8 +128,16 @@ class HotspotStack(cdk.Stack):
                     'type': glue.Schema.BIG_INT
                 },
                 {
-                    'name': 'genres',
-                    'type': glue.Schema.STRING
+                    'name': 'name_binary',
+                    'type': glue.Schema.BINARY
+                },
+                {
+                    'name': 'artist_name_binary',
+                    'type': glue.Schema.BINARY
+                },
+                {
+                    'name': 'album_name_binary',
+                    'type': glue.Schema.BINARY
                 }
             ],
             partition_keys=[

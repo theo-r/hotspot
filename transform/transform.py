@@ -44,8 +44,7 @@ def lambda_handler(event, context):
     artists = rp_json['artists']
     genres = [';'.join(artist['genres']) for artist in artists]
     track = transform_manager.prep_data(items_df, genres, user_name=user_name)
-    partition_cols = ['user_name']
-    res = transform_manager.push_data(track, partition_cols)
+    res = transform_manager.push_data(track)
     logger.info(json.dumps(res, indent=2))
     return "200"
 
