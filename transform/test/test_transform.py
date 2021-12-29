@@ -5,12 +5,12 @@ import os
 from unittest.mock import MagicMock
 
 def read_spotify_response_helper(*args, **kwargs):
-    with open("transform/test/data/res.json", "r") as f:
+    with open("test/data/res.json", "r") as f:
         res = json.load(f)
     return res
 
 def _get_event():
-    with open("transform/test/data/event.json", "r") as f:
+    with open("test/data/event.json", "r") as f:
         event = json.load(f)
     return event
 

@@ -29,7 +29,8 @@ COLS = [
     'played_at',
     'name_binary',
     'artist_name_binary',
-    'album_name_binary'
+    'album_name_binary',
+    'user_name'
 ]
 
 def lambda_handler(event, context):
@@ -41,9 +42,15 @@ def lambda_handler(event, context):
     logger.info(f"{bucket}/{key}")
     rp_json = transform_manager.read_spotify_response(bucket=bucket, key=key)
     items_df = pd.DataFrame(rp_json['items'])
-    artists = rp_json['artists']
-    genres = [';'.join(artist['genres']) for artist in artists]
-    track = transform_manager.prep_data(items_df, genres, user_name=user_name)
+    items_df['user_name'] = user_name
+
+    if 'artists' in rp_json:
+        artists = rp_json['artists']
+        items_df['genres'] = [';'.join(artist['genres']) for artist in artists]
+    else:
+        items_df['genres'] = ""
+
+    track = transform_manager.prep_data(items_df)
     res = transform_manager.push_data(track)
     logger.info(json.dumps(res, indent=2))
     return "200"
@@ -69,23 +76,21 @@ class TransformManager:
         )
 
     @staticmethod
-    def prep_data(items_df, genres, user_name: str):
+    def prep_data(items_df):
         track = pd.json_normalize(items_df.track)
-        played_at = items_df.played_at.copy()
         # only take primary artists
         artist_name = [artist[0]['name'] for artist in track.artists]
         album_image = [images[1]['url'] for images in track['album.images']]
-        track['genres'] = genres
         track['artist_name'] = artist_name
         track['album_image'] = album_image
         track['album_name'] = track['album.name']
-        track['played_at'] = played_at
+        track['genres'] = items_df.genres.copy()
+        track['user_name'] = items_df.user_name.copy()
+        track['played_at'] = pd.to_datetime(items_df.played_at).copy()
         track['name_binary'] = track['name'].str.encode('utf-8')
         track['artist_name_binary'] = track['artist_name'].str.encode('utf-8')
         track['album_name_binary'] = track['album_name'].str.encode('utf-8')
         track = track[COLS]
-        track['user_name'] = user_name
-        track['played_at'] = pd.to_datetime(track.played_at).copy()
         track['year'] = track['played_at'].dt.year
         track['month'] = track['played_at'].dt.month
         track['day'] = track['played_at'].dt.day
@@ -93,4 +98,3 @@ class TransformManager:
         track["date"] = track['played_at'].dt.date
         track["dayofweek"] = track['played_at'].dt.dayofweek
         return track
-
