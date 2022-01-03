@@ -12,9 +12,6 @@ from aws_cdk import (
     core as cdk
 )
 from aws_cdk.aws_lambda_python import PythonFunction
-import os
-import subprocess
-
 
 class HotspotStack(cdk.Stack):
 
@@ -58,9 +55,9 @@ class HotspotStack(cdk.Stack):
 
         glue_table = glue.Table(
             self,
-            'plays_table',
+            'tracks_table',
             database=glue_db,
-            table_name='plays',
+            table_name='tracks',
             columns=[
                 {
                     'name': 'duration_ms',
@@ -131,8 +128,16 @@ class HotspotStack(cdk.Stack):
                     'type': glue.Schema.BIG_INT
                 },
                 {
-                    'name': 'genres',
-                    'type': glue.Schema.STRING
+                    'name': 'name_binary',
+                    'type': glue.Schema.BINARY
+                },
+                {
+                    'name': 'artist_name_binary',
+                    'type': glue.Schema.BINARY
+                },
+                {
+                    'name': 'album_name_binary',
+                    'type': glue.Schema.BINARY
                 }
             ],
             partition_keys=[
@@ -143,7 +148,7 @@ class HotspotStack(cdk.Stack):
             ],
             data_format=glue.DataFormat.PARQUET,
             bucket=s3,
-            s3_prefix='plays/'
+            s3_prefix='tracks/'
         )
 
         ingest = PythonFunction(
