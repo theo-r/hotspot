@@ -1,7 +1,7 @@
 import logging
-import json
 import boto3
 import awswrangler as wr
+import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 import streamlit as st
@@ -104,13 +104,16 @@ top_albums = (df['album_name']
 genres_df = (df['genres']
     [df['played_at'] > start]
     [df['played_at'] <= end]
+    .replace("", np.nan)
     .dropna()
     .reset_index(drop=True))
 
 top_genres = (pd.Series(
     [x for genres in genres_df for x in genres.split(';')])
     .value_counts()[:10]
-    .to_frame())
+    .to_frame()
+    .rename(columns={0: 'genre'})
+    .sort_values(by='genre'))
 
 top_album_images = (df[['album_name', 'album_image']]
     [df['played_at'] > start]
