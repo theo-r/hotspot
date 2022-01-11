@@ -1,3 +1,2 @@
 aws-cdk-lib
-aws-cdk.aws-lambda-python-alpha
 aws_cdk.aws_glue_alpha

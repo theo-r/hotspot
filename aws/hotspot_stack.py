@@ -12,7 +12,6 @@ from aws_cdk import (
     aws_iam as iam,
     aws_athena as athena
 )
-from aws_cdk.aws_lambda_python_alpha import PythonFunction
 import aws_cdk.aws_glue_alpha as glue
 
 class HotspotStack(cdk.Stack):
