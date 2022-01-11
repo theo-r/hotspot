@@ -1,14 +1,11 @@
 on: [push]
 
 jobs:
-  setup:
-    steps:
-      - name: set work space
-        uses: actions/checkout@v2
-
   aws_cdk:
     runs-on: ubuntu-latest
     steps:
+      - name: set work space
+        uses: actions/checkout@v2
 
       - name: cdk diff
         uses: youyo/aws-cdk-github-actions@v2
