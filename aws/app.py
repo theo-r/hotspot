@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-import os
-from aws_cdk import core as cdk
+import aws_cdk as cdk
 from hotspot_stack import HotspotStack
 
 
