@@ -1,3 +1,6 @@
+import aws_cdk as cdk
+from constructs import Construct
+from aws_cdk import App, Stack
 from aws_cdk import (
     aws_dynamodb,
     aws_events as events,
@@ -6,16 +9,15 @@ from aws_cdk import (
     aws_s3 as _s3,
     aws_s3_notifications,
     aws_ssm as ssm,
-    aws_glue as glue,
     aws_iam as iam,
-    aws_athena as athena,
-    core as cdk
+    aws_athena as athena
 )
-from aws_cdk.aws_lambda_python import PythonFunction
+from aws_cdk.aws_lambda_python_alpha import PythonFunction
+import aws_cdk.aws_glue_alpha as glue
 
 class HotspotStack(cdk.Stack):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         spotipy_client_id = ssm.StringParameter.from_string_parameter_name(
@@ -151,13 +153,10 @@ class HotspotStack(cdk.Stack):
             s3_prefix='tracks/'
         )
 
-        ingest = PythonFunction(
+        ingest = _lambda.DockerImageFunction(
             self,
-            'ingest',
-            entry='../ingest',
-            index='ingest.py',
-            handler='lambda_handler',
-            runtime=_lambda.Runtime.PYTHON_3_8,
+            'ingest2',
+            code=_lambda.DockerImageCode.from_image_asset("../ingest"),
             timeout=cdk.Duration.seconds(30)
         )
 
