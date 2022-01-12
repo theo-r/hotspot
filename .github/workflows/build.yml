@@ -4,7 +4,7 @@ jobs:
   aws_cdk:
     runs-on: ubuntu-latest
     steps:
-      - name: set work space
+      - name: Set work space
         uses: actions/checkout@v2
 
       - name: Use Node.js
@@ -28,5 +28,4 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_ACCOUNT: ${{ secrets.AWS_TARGET_ACCOUNT }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+
