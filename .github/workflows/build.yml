@@ -32,8 +32,7 @@ jobs:
       - name: Deploy CDK
         working-directory: ./aws
         run: |
-          cdk deploy --require-approval never "*"
+          cdk deploy --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}' --require-approval never "*"
         env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
