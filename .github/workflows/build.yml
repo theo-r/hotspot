@@ -11,7 +11,7 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: 'synth'
-          cdk_args: '--app python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}'
+          cdk_args: '--app python aws/app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}'
           actions_comment: true
           working_dir: 'aws/'
         env:
