@@ -24,14 +24,15 @@ jobs:
       - name: Synth CDK
         working-directory: ./aws
         run: |
-          cdk synth --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }} --output build/cdk.out'
+          cdk synth --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Deploy CDK
+        working-directory: ./aws
         run: |
-          cdk deploy --app ./build/cdk.out --require-approval never "*"
+          cdk deploy --require-approval never "*"
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
