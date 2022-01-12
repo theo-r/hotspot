@@ -7,15 +7,26 @@ jobs:
       - name: set work space
         uses: actions/checkout@v2
 
-      - name: cdk synth
-        uses: youyo/aws-cdk-github-actions@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
         with:
-          cdk_subcommand: 'synth'
-          cdk_args: '--app python ~/aws/app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}'
-          actions_comment: true
-          working_dir: 'aws/'
+          node-version: '14.x'
+
+      - name: Install CDK
+        run: |
+          npm install -g aws-cdk
+
+      - name: Install python dependencies
+        working-directory: ./aws
+        run: |
+          pip install -r requirements.txt
+
+      - name: Synth CDK
+        working-directory: ./aws
+        run: |
+          cdk synth --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
+          AWS_ACCOUNT: ${{ secrets.AWS_TARGET_ACCOUNT }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
