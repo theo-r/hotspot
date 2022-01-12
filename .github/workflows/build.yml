@@ -30,7 +30,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Deploy CDK
-        working-directory: ./aws
         run: |
           cdk deploy --app ./build/cdk.out --require-approval never "*"
         env:
