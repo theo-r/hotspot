@@ -16,7 +16,15 @@ jobs:
         run: |
           npm install -g aws-cdk
 
-      - name: Install python dependencies
+      - name: Install unit testing python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run test suite
+        run: |
+          pytest
+
+      - name: Install cdk python dependencies
         working-directory: ./aws
         run: |
           pip install -r requirements.txt
