@@ -1,0 +1,39 @@
+on: [push]
+
+jobs:
+  aws_cdk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set work space
+        uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+
+      - name: Install CDK
+        run: |
+          npm install -g aws-cdk
+
+      - name: Install python dependencies
+        working-directory: ./aws
+        run: |
+          pip install -r requirements.txt
+
+      - name: Synth CDK
+        working-directory: ./aws
+        run: |
+          cdk synth --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Deploy CDK
+        working-directory: ./aws
+        run: |
+          cdk deploy --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}' --require-approval never "*"
+        if: github.ref == 'refs/heads/master'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

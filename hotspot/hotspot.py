@@ -28,8 +28,6 @@ bucket_name = os.environ.get("S3_BUCKET")
 glue_db = os.environ.get("GLUE_DB")
 glue_table = os.environ.get("GLUE_TABLE")
 workgroup = os.environ.get("WORKGROUP")
-
-@st.cache(persist=True, allow_output_mutation=True, ttl=3600)
 def load_data(user_name: str, users: Tuple):
     if user_name == "All":
         df = wr.athena.read_sql_query(
