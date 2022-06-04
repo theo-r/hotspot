@@ -20,7 +20,7 @@ cols = [
     'played_at'
 ]
 
-users = ('Charley', 'Dan', 'Fred', 'George', 'Theo', 'All')
+users = ('Dan', 'Fred', 'George', 'Theo', 'All')
 
 st.set_page_config(layout='wide')
 
@@ -51,7 +51,7 @@ def load_data(user_name: str, users: Tuple):
 user_name = st.sidebar.selectbox(
     label='Select a user',
     options=users,
-    index=4
+    index=3
 )
 
 df: pd.DataFrame = load_data(user_name=user_name, users=users)
