@@ -91,7 +91,7 @@ class HotspotStack(cdk.Stack):
             self,
             "ingest2",
             code=_lambda.DockerImageCode.from_image_asset("../ingest"),
-            architecture=_lambda.Architecture.ARM_64,
+            architecture=_lambda.Architecture.X86_64,
             timeout=cdk.Duration.seconds(30),
         )
 
@@ -112,7 +112,7 @@ class HotspotStack(cdk.Stack):
             self,
             "transform2",
             code=_lambda.DockerImageCode.from_image_asset("../transform"),
-            architecture=_lambda.Architecture.ARM_64,
+            architecture=_lambda.Architecture.X86_64,
             timeout=cdk.Duration.seconds(60),
         )
 
@@ -192,7 +192,7 @@ class HotspotStack(cdk.Stack):
             self,
             "PrepHotspotApiLambda",
             code=_lambda.DockerImageCode.from_image_asset("../prep_hotspot_api"),
-            architecture=_lambda.Architecture.ARM_64,
+            architecture=_lambda.Architecture.X86_64,
             memory_size=1024,
             timeout=cdk.Duration.seconds(60),
         )
