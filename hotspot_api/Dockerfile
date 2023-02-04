@@ -1,4 +1,4 @@
-FROM --platform=linux/x86_64 public.ecr.aws/lambda/python:3.9-arm64
+FROM --platform=linux/amd64 public.ecr.aws/lambda/python:3.9-arm64
 
 COPY hotspot_api.py ${LAMBDA_TASK_ROOT}
 
