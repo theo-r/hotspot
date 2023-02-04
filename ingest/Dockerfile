@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.9-arm64
+FROM public.ecr.aws/lambda/python:3.9
 
 COPY ingest.py ${LAMBDA_TASK_ROOT}
 
