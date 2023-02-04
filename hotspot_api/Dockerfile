@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.9
+FROM public.ecr.aws/lambda/python:3.9-latest
 
 COPY hotspot_api.py ${LAMBDA_TASK_ROOT}
 
