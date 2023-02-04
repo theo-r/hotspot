@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 public.ecr.aws/lambda/python:3.9-arm64
+FROM public.ecr.aws/lambda/python:3.9-arm64
 
 COPY transform.py ${LAMBDA_TASK_ROOT}
 
