@@ -1,10 +1,8 @@
 import boto3
-import awswrangler as wr
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 import streamlit as st
-import os
 import requests
 
 boto3.setup_default_session(region_name="eu-west-1")
@@ -14,37 +12,19 @@ users = ["Dan", "Fred", "George", "Theo"]
 
 st.set_page_config(layout="wide")
 
-bucket_name = os.environ.get("S3_BUCKET")
-glue_db = os.environ.get("GLUE_DB")
-glue_table = os.environ.get("GLUE_TABLE")
-workgroup = os.environ.get("WORKGROUP")
-
 
 @st.cache(ttl=3600, show_spinner=False)
 def load_data():
-    df = wr.athena.read_sql_query(
-        f"SELECT * FROM {glue_table}",
-        database=glue_db,
-        ctas_approach=True,
-        s3_output=f"s3://{bucket_name}/athena-query-results/",
-        workgroup=workgroup,
+    res = requests.get(
+        "https://ddhry4h9th.execute-api.eu-west-1.amazonaws.com/prod/past_month"
     )
-    df = df.astype({"explicit": "object"})
-    return df
-
-
-@st.cache(ttl=3600, show_spinner=False)
-def load_data_v2():
-    res = requests.get("https://8j54ntjh22.execute-api.eu-west-1.amazonaws.com/fresh")
-    df = pd.DataFrame(res.json())
+    df = pd.DataFrame(res.json()["body"])
     df.played_at = [datetime.fromtimestamp(a / 1000) for a in df.played_at]
     df.date = df["played_at"].dt.date
     return df
 
 
 def main():
-    now = datetime.now()
-
     user_name = st.sidebar.selectbox(
         label="Select a user",
         options=users + ["All"],
@@ -52,8 +32,8 @@ def main():
 
     start_date = st.sidebar.date_input(
         "Start date:",
-        value=datetime.now() + timedelta(days=-7),
-        min_value=datetime(2021, 1, 1),
+        value=datetime.now() + timedelta(days=-30),
+        min_value=datetime.now() + timedelta(days=-30),
         max_value=datetime.now(),
     )
 
@@ -68,30 +48,16 @@ def main():
     end: datetime = datetime(end_date.year, end_date.month, end_date.day) + timedelta(
         days=1
     )
-    default_start = datetime(now.year, now.month, now.day) + timedelta(days=-7)
-    default_end = datetime(now.year, now.month, now.day) + timedelta(days=1)
 
     num_days = (end - start).days
     dates_index = pd.DataFrame(
         {"dates": [(start + timedelta(days=x)).date() for x in range(num_days)]}
     )
 
-    if start == default_start and end == default_end:
-        df: pd.DataFrame = load_data_v2()
-        render_page(
-            df=df, user_name=user_name, start=start, end=end, dates_index=dates_index
-        )
-        full_load = load_data()
-
-    else:
-        full_load = load_data()
-        render_page(
-            df=full_load,
-            user_name=user_name,
-            start=start,
-            end=end,
-            dates_index=dates_index,
-        )
+    df: pd.DataFrame = load_data()
+    render_page(
+        df=df, user_name=user_name, start=start, end=end, dates_index=dates_index
+    )
 
 
 def get_top_artists(df: pd.DataFrame, user_name: str, start: datetime, end: datetime):
