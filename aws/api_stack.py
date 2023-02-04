@@ -26,7 +26,7 @@ class ApiStack(Stack):
             self,
             "HotspotApiLambda",
             code=_lambda.DockerImageCode.from_image_asset("../hotspot_api"),
-            architecture=_lambda.Architecture.ARM_64,
+            architecture=_lambda.Architecture.X86_64,
             timeout=cdk.Duration.seconds(10),
         )
 
