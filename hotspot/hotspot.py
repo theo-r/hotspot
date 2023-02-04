@@ -1,10 +1,8 @@
 import boto3
-import awswrangler as wr
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 import streamlit as st
-import os
 import requests
 
 boto3.setup_default_session(region_name="eu-west-1")
@@ -27,8 +25,6 @@ def load_data():
 
 
 def main():
-    now = datetime.now()
-
     user_name = st.sidebar.selectbox(
         label="Select a user",
         options=users + ["All"],
@@ -52,8 +48,6 @@ def main():
     end: datetime = datetime(end_date.year, end_date.month, end_date.day) + timedelta(
         days=1
     )
-    default_start = datetime(now.year, now.month, now.day) + timedelta(days=-7)
-    default_end = datetime(now.year, now.month, now.day) + timedelta(days=1)
 
     num_days = (end - start).days
     dates_index = pd.DataFrame(
