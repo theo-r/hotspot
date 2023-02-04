@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.9-latest
+FROM public.ecr.aws/lambda/python:latest
 
 COPY transform.py ${LAMBDA_TASK_ROOT}
 
