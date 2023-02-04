@@ -91,7 +91,7 @@ class HotspotStack(cdk.Stack):
             self,
             "ingest2",
             code=_lambda.DockerImageCode.from_image_asset("../ingest"),
-            architecture=_lambda.Architecture.X86,
+            architecture=_lambda.Architecture.X86_64,
             timeout=cdk.Duration.seconds(30),
         )
 
