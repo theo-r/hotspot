@@ -28,6 +28,7 @@ class ApiStack(Stack):
             code=_lambda.DockerImageCode.from_image_asset("../lambda/hotspot_api"),
             architecture=_lambda.Architecture.X86_64,
             timeout=cdk.Duration.seconds(10),
+            memory_size=512,
         )
 
         hotspot_api_lambda.add_environment("BUCKET_NAME", hotspot_stack.s3.bucket_name)
