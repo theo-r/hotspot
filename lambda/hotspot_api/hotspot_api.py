@@ -15,7 +15,7 @@ app = APIGatewayRestResolver()
 s3 = boto3.client("s3")
 
 
-@app.get("/past_week", compress=True)
+@app.get("/week", compress=True)
 @tracer.capture_method
 def get_past_week():
     bucket_name = os.getenv("BUCKET_NAME", "")
@@ -26,7 +26,7 @@ def get_past_week():
     return {"body": obj}
 
 
-@app.get("/past_month", compress=True)
+@app.get("/month", compress=True)
 @tracer.capture_method
 def get_past_month():
     bucket_name = os.getenv("BUCKET_NAME", "")
@@ -37,7 +37,7 @@ def get_past_month():
     return {"body": obj}
 
 
-@app.get("/past_year", compress=True)
+@app.get("/year", compress=True)
 @tracer.capture_method
 def get_past_year():
     bucket_name = os.getenv("BUCKET_NAME", "")
