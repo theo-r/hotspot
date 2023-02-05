@@ -12,13 +12,14 @@ tracer = Tracer()
 logger = Logger()
 app = APIGatewayRestResolver()
 
+s3 = boto3.client("s3")
+
 
 @app.get("/past_month", compress=True)
 @tracer.capture_method
 def get_month():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_month_path = os.getenv("PAST_MONTH_PATH", "")
-    s3 = boto3.client("s3")
     obj = json.loads(
         s3.get_object(Bucket=bucket_name, Key=past_month_path)["Body"].read()
     )
@@ -30,7 +31,6 @@ def get_month():
 def get_year():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_year_path = os.getenv("PAST_YEAR_PATH", "")
-    s3 = boto3.client("s3")
     obj = json.loads(
         s3.get_object(Bucket=bucket_name, Key=past_year_path)["Body"].read()
     )
@@ -52,7 +52,6 @@ def get_todos():
 def get_week():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_week_path = os.getenv("PAST_WEEK_PATH", "")
-    s3 = boto3.client("s3")
     obj = json.loads(
         s3.get_object(Bucket=bucket_name, Key=past_week_path)["Body"].read()
     )
