@@ -17,7 +17,7 @@ s3 = boto3.client("s3")
 
 @app.get("/week", compress=True)
 @tracer.capture_method
-def get_past_week():
+def get_week():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_week_path = os.getenv("PAST_WEEK_PATH", "")
     obj = json.loads(
@@ -28,7 +28,7 @@ def get_past_week():
 
 @app.get("/month", compress=True)
 @tracer.capture_method
-def get_past_month():
+def get_month():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_month_path = os.getenv("PAST_MONTH_PATH", "")
     obj = json.loads(
@@ -39,7 +39,7 @@ def get_past_month():
 
 @app.get("/year", compress=True)
 @tracer.capture_method
-def get_past_year():
+def get_year():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_year_path = os.getenv("PAST_YEAR_PATH", "")
     obj = json.loads(
