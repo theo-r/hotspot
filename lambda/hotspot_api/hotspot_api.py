@@ -13,7 +13,7 @@ logger = Logger()
 app = APIGatewayRestResolver()
 
 
-@app.get("/month", compress=True)
+@app.get("/past_month", compress=True)
 @tracer.capture_method
 def get_month():
     bucket_name = os.getenv("BUCKET_NAME", "")
@@ -25,7 +25,7 @@ def get_month():
     return {"body": obj}
 
 
-@app.get("/year", compress=True)
+@app.get("/past_year", compress=True)
 @tracer.capture_method
 def get_year():
     bucket_name = os.getenv("BUCKET_NAME", "")
@@ -47,7 +47,7 @@ def get_todos():
     return {"todos": todos.json()[:10]}
 
 
-@app.get("/week", compress=True)
+@app.get("/past_week", compress=True)
 @tracer.capture_method
 def get_week():
     bucket_name = os.getenv("BUCKET_NAME", "")
