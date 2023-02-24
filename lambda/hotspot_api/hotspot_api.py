@@ -16,7 +16,7 @@ s3 = boto3.client("s3")
 
 
 @app.get("/past_month", compress=True)
-@tracer.capture_method
+@tracer.capture_method(capture_response=False)
 def get_month():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_month_path = os.getenv("PAST_MONTH_PATH", "")
@@ -27,7 +27,7 @@ def get_month():
 
 
 @app.get("/past_year", compress=True)
-@tracer.capture_method
+@tracer.capture_method(capture_response=False)
 def get_year():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_year_path = os.getenv("PAST_YEAR_PATH", "")
@@ -38,7 +38,7 @@ def get_year():
 
 
 @app.get("/todos", compress=True)
-@tracer.capture_method
+@tracer.capture_method(capture_response=False)
 def get_todos():
     todos: Response = requests.get("https://jsonplaceholder.typicode.com/todos")
     todos.raise_for_status()
@@ -48,7 +48,7 @@ def get_todos():
 
 
 @app.get("/past_week", compress=True)
-@tracer.capture_method
+@tracer.capture_method(capture_response=False)
 def get_week():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_week_path = os.getenv("PAST_WEEK_PATH", "")
