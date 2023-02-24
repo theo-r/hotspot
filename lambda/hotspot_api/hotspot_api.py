@@ -15,20 +15,9 @@ app = APIGatewayRestResolver()
 s3 = boto3.client("s3")
 
 
-@app.get("/past_week", compress=True)
-@tracer.capture_method
-def get_past_week():
-    bucket_name = os.getenv("BUCKET_NAME", "")
-    past_week_path = os.getenv("PAST_WEEK_PATH", "")
-    obj = json.loads(
-        s3.get_object(Bucket=bucket_name, Key=past_week_path)["Body"].read()
-    )
-    return {"body": obj}
-
-
 @app.get("/past_month", compress=True)
-@tracer.capture_method
-def get_past_month():
+@tracer.capture_method(capture_response=False)
+def get_month():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_month_path = os.getenv("PAST_MONTH_PATH", "")
     obj = json.loads(
@@ -38,8 +27,8 @@ def get_past_month():
 
 
 @app.get("/past_year", compress=True)
-@tracer.capture_method
-def get_past_year():
+@tracer.capture_method(capture_response=False)
+def get_year():
     bucket_name = os.getenv("BUCKET_NAME", "")
     past_year_path = os.getenv("PAST_YEAR_PATH", "")
     obj = json.loads(
@@ -49,7 +38,7 @@ def get_past_year():
 
 
 @app.get("/todos", compress=True)
-@tracer.capture_method
+@tracer.capture_method(capture_response=False)
 def get_todos():
     todos: Response = requests.get("https://jsonplaceholder.typicode.com/todos")
     todos.raise_for_status()
@@ -58,6 +47,17 @@ def get_todos():
     return {"todos": todos.json()[:10]}
 
 
-@tracer.capture_lambda_handler
+@app.get("/past_week", compress=True)
+@tracer.capture_method(capture_response=False)
+def get_week():
+    bucket_name = os.getenv("BUCKET_NAME", "")
+    past_week_path = os.getenv("PAST_WEEK_PATH", "")
+    obj = json.loads(
+        s3.get_object(Bucket=bucket_name, Key=past_week_path)["Body"].read()
+    )
+    return {"body": obj}
+
+
+@tracer.capture_lambda_handler(capture_response=False)
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
     return app.resolve(event, context)

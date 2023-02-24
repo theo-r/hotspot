@@ -2,7 +2,6 @@ import logging
 import awswrangler as wr
 import os
 from datetime import datetime, timedelta
-import json
 import boto3
 
 logger = logging.getLogger(__name__)
