@@ -58,6 +58,6 @@ def get_week():
     return {"body": obj}
 
 
-@tracer.capture_lambda_handler
+@tracer.capture_lambda_handler(capture_response=False)
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
     return app.resolve(event, context)
