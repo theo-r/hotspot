@@ -36,7 +36,7 @@ def lambda_handler(event, context):
         )
 
         past_week_query = f"""
-        SELECT name, artist_name, album_name, album_image, genres, duration_ms, played_at, date, hour, user_name FROM {glue_table}
+        SELECT name, artist_name, album_name, album_image, genres, duration_ms, played_at, user_name FROM {glue_table}
         """
 
         df = wr.athena.read_sql_query(
