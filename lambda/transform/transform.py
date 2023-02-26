@@ -16,20 +16,12 @@ PARTITION_COLS = ["user_name"]
 
 COLS = [
     "duration_ms",
-    "explicit",
-    "id",
     "name",
-    "popularity",
     "album_name",
-    "album.release_date",
-    "album.release_date_precision",
     "album_image",
     "artist_name",
     "genres",
     "played_at",
-    "name_binary",
-    "artist_name_binary",
-    "album_name_binary",
     "user_name",
 ]
 
@@ -89,14 +81,5 @@ class TransformManager:
         track["genres"] = items_df.genres.copy()
         track["user_name"] = items_df.user_name.copy()
         track["played_at"] = pd.to_datetime(items_df.played_at).copy()
-        track["name_binary"] = track["name"].str.encode("utf-8")
-        track["artist_name_binary"] = track["artist_name"].str.encode("utf-8")
-        track["album_name_binary"] = track["album_name"].str.encode("utf-8")
         track = track[COLS]
-        track["year"] = track["played_at"].dt.year
-        track["month"] = track["played_at"].dt.month
-        track["day"] = track["played_at"].dt.day
-        track["hour"] = track["played_at"].dt.hour
-        track["date"] = track["played_at"].dt.date
-        track["dayofweek"] = track["played_at"].dt.dayofweek
         return track

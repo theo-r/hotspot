@@ -19,8 +19,13 @@ def load_data():
         "https://ddhry4h9th.execute-api.eu-west-1.amazonaws.com/prod/past_month"
     )
     df = pd.DataFrame(res.json()["body"])
-    df.played_at = [datetime.fromtimestamp(a / 1000) for a in df.played_at]
-    df.date = df["played_at"].dt.date
+    df["played_at"] = [datetime.fromtimestamp(a / 1000) for a in df["played_at"]]
+    df["date"] = df["played_at"].dt.date
+    df["year"] = df["played_at"].dt.year
+    df["month"] = df["played_at"].dt.month
+    df["day"] = df["played_at"].dt.day
+    df["hour"] = df["played_at"].dt.hour
+    df["dayofweek"] = df["played_at"].dt.dayofweek
     return df
 
 

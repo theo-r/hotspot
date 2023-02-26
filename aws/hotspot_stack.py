@@ -121,8 +121,8 @@ class HotspotStack(cdk.Stack):
                 "service-role/AWSGlueServiceRole"
             )
         )
-        transform.add_environment("GLUE_TABLE_NAME", glue_table.table_name)
-        transform.add_environment("GLUE_DB_NAME", glue_db.database_name)
+        transform.add_environment("GLUE_TABLE_NAME", "plays")
+        transform.add_environment("GLUE_DB_NAME", "hotspot")
         self.s3.grant_read_write(transform)
 
         notification = aws_s3_notifications.LambdaDestination(transform)
@@ -165,7 +165,8 @@ class HotspotStack(cdk.Stack):
                     ],
                     resources=[
                         f"{self.s3.bucket_arn}",
-                        f"{self.s3.bucket_arn}/{glue_table.table_name}/*",
+                        f"{self.s3.bucket_arn}/plays/*",
+                        f"arn:aws:glue:{self.region}:{self.account}:table/{glue_db.database_name}/plays",
                         f"{glue_table.table_arn}",
                         f"{glue_db.database_arn}",
                         f"{glue_db.catalog_arn}",
@@ -197,8 +198,8 @@ class HotspotStack(cdk.Stack):
             timeout=cdk.Duration.seconds(60),
         )
 
-        prep_hotspot_api_lambda.add_environment("GLUE_TABLE", glue_table.table_name)
-        prep_hotspot_api_lambda.add_environment("GLUE_DB", glue_db.database_name)
+        prep_hotspot_api_lambda.add_environment("GLUE_TABLE", "plays")
+        prep_hotspot_api_lambda.add_environment("GLUE_DB", "hotspot")
         prep_hotspot_api_lambda.add_environment("BUCKET_NAME", self.s3.bucket_name)
         prep_hotspot_api_lambda.add_environment(
             "PAST_WEEK_PATH", "fresh/past_week.json"
