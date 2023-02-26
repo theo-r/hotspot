@@ -1,9 +1,9 @@
 on:
-  - push:
-      paths:
-      - lambda/**
-      - aws/**
-  - workflow_dispatch
+  workflow_dispatch:
+  push:
+    paths:
+    - lambda/**
+    - aws/**
 
 jobs:
   aws_cdk:
