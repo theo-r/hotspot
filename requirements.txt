@@ -14,3 +14,4 @@ spotipy
 urllib3
 pytest
 mock
+pre-commit

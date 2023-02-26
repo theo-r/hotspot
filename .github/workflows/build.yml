@@ -8,8 +8,11 @@ jobs:
   aws_cdk:
     runs-on: ubuntu-latest
     steps:
-      - name: Set work space
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
       - name: Use Node.js
         uses: actions/setup-node@v1
@@ -23,6 +26,10 @@ jobs:
       - name: Install unit testing python dependencies
         run: |
           pip install -r requirements.txt
+
+      - name: pre-commit
+        run: |
+          pre-commit run --all-files
 
       - name: Run test suite
         run: |
