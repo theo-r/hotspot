@@ -19,10 +19,6 @@ jobs:
         with:
           node-version: '16.x'
 
-      - name: pre-commit
-        run: |
-          pre-commit run --all-files
-
       - name: Install CDK
         run: |
           npm install -g aws-cdk
@@ -30,6 +26,10 @@ jobs:
       - name: Install unit testing python dependencies
         run: |
           pip install -r requirements.txt
+
+      - name: pre-commit
+        run: |
+          pre-commit run --all-files
 
       - name: Run test suite
         run: |
