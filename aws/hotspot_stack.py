@@ -218,7 +218,7 @@ class HotspotStack(cdk.Stack):
             self,
             "PrepHotspotApiCron",
             schedule=events.Schedule.cron(
-                minute="5", hour="*", day="*", month="*", year="*"
+                minute="5", hour="/6", day="*", month="*", year="*"
             ),
         )
         prep_hotspot_api_cron.add_target(
