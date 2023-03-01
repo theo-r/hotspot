@@ -54,39 +54,6 @@ class HotspotStack(cdk.Stack):
 
         glue_db = glue.Database(self, "hotspotdb", database_name="hotspot")
 
-        glue_table = glue.Table(
-            self,
-            "tracks_table",
-            database=glue_db,
-            table_name="tracks",
-            columns=[
-                {"name": "duration_ms", "type": glue.Schema.BIG_INT},
-                {"name": "explicit", "type": glue.Schema.BOOLEAN},
-                {"name": "id", "type": glue.Schema.STRING},
-                {"name": "name", "type": glue.Schema.STRING},
-                {"name": "popularity", "type": glue.Schema.BIG_INT},
-                {"name": "album_name", "type": glue.Schema.STRING},
-                {"name": "album_release_date", "type": glue.Schema.STRING},
-                {"name": "album_release_date_precision", "type": glue.Schema.STRING},
-                {"name": "album_image", "type": glue.Schema.STRING},
-                {"name": "artist_name", "type": glue.Schema.STRING},
-                {"name": "played_at", "type": glue.Schema.TIMESTAMP},
-                {"name": "year", "type": glue.Schema.BIG_INT},
-                {"name": "month", "type": glue.Schema.BIG_INT},
-                {"name": "day", "type": glue.Schema.BIG_INT},
-                {"name": "hour", "type": glue.Schema.BIG_INT},
-                {"name": "date", "type": glue.Schema.DATE},
-                {"name": "dayofweek", "type": glue.Schema.BIG_INT},
-                {"name": "name_binary", "type": glue.Schema.BINARY},
-                {"name": "artist_name_binary", "type": glue.Schema.BINARY},
-                {"name": "album_name_binary", "type": glue.Schema.BINARY},
-            ],
-            partition_keys=[{"name": "user_name", "type": glue.Schema.STRING}],
-            data_format=glue.DataFormat.PARQUET,
-            bucket=self.s3,
-            s3_prefix="tracks/",
-        )
-
         ingest = _lambda.DockerImageFunction(
             self,
             "ingest2",
@@ -167,7 +134,6 @@ class HotspotStack(cdk.Stack):
                         f"{self.s3.bucket_arn}",
                         f"{self.s3.bucket_arn}/plays/*",
                         f"arn:aws:glue:{self.region}:{self.account}:table/{glue_db.database_name}/plays",
-                        f"{glue_table.table_arn}",
                         f"{glue_db.database_arn}",
                         f"{glue_db.catalog_arn}",
                         f"arn:aws:athena:{self.region}:{self.account}:workgroup/{athena_workgroup.name}",
@@ -181,12 +147,6 @@ class HotspotStack(cdk.Stack):
                     ],
                 ),
             ],
-        )
-
-        hotspot_user = iam.User(self, "hotspot")
-        hotspot_user.attach_inline_policy(hotspot_user_policy)
-        hotspot_user_access_key = iam.CfnAccessKey(
-            self, "hotspot_user_access_key", user_name=hotspot_user.user_name
         )
 
         prep_hotspot_api_lambda = _lambda.DockerImageFunction(
