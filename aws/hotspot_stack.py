@@ -134,7 +134,6 @@ class HotspotStack(cdk.Stack):
                         f"{self.s3.bucket_arn}",
                         f"{self.s3.bucket_arn}/plays/*",
                         f"arn:aws:glue:{self.region}:{self.account}:table/{glue_db.database_name}/plays",
-                        f"{glue_table.table_arn}",
                         f"{glue_db.database_arn}",
                         f"{glue_db.catalog_arn}",
                         f"arn:aws:athena:{self.region}:{self.account}:workgroup/{athena_workgroup.name}",
@@ -148,12 +147,6 @@ class HotspotStack(cdk.Stack):
                     ],
                 ),
             ],
-        )
-
-        hotspot_user = iam.User(self, "hotspot")
-        hotspot_user.attach_inline_policy(hotspot_user_policy)
-        hotspot_user_access_key = iam.CfnAccessKey(
-            self, "hotspot_user_access_key", user_name=hotspot_user.user_name
         )
 
         prep_hotspot_api_lambda = _lambda.DockerImageFunction(
