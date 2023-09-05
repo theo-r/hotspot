@@ -1,4 +1,4 @@
-boto3
-streamlit
-awswrangler
-pandas
+boto3==1.28.40
+streamlit==1.26.0
+awswrangler==3.3.0
+pandas==2.1.0
