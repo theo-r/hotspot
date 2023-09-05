@@ -13,7 +13,7 @@ users = ["Dan", "Fred", "George", "Theo"]
 st.set_page_config(layout="wide")
 
 
-@st.cache(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=3600, show_spinner=False)
 def load_data():
     res = requests.get(
         "https://ddhry4h9th.execute-api.eu-west-1.amazonaws.com/prod/past_month"
@@ -72,7 +72,7 @@ def get_top_artists(df: pd.DataFrame, user_name: str, start: datetime, end: date
             .value_counts()
             .to_frame()
             .reset_index(drop=False)
-            .rename(columns={"index": "artist", "artist_name": "plays"})
+            .rename(columns={"artist_name": "artist", "count": "plays"})
         )
     else:
         return (
@@ -82,7 +82,7 @@ def get_top_artists(df: pd.DataFrame, user_name: str, start: datetime, end: date
             .value_counts()
             .to_frame()
             .reset_index(drop=False)
-            .rename(columns={"index": "artist", "artist_name": "plays"})
+            .rename(columns={"artist_name": "artist", "count": "plays"})
         )
 
 
@@ -114,7 +114,7 @@ def get_top_albums(df: pd.DataFrame, user_name: str, start: datetime, end: datet
             .value_counts()
             .to_frame()
             .reset_index(drop=False)
-            .rename(columns={"index": "album", "album_name": "plays"})
+            .rename(columns={"album_name": "album", "count": "plays"})
         )
     else:
         return (
@@ -124,7 +124,7 @@ def get_top_albums(df: pd.DataFrame, user_name: str, start: datetime, end: datet
             .value_counts()
             .to_frame()
             .reset_index(drop=False)
-            .rename(columns={"index": "album", "album_name": "plays"})
+            .rename(columns={"album_name": "album", "count": "plays"})
         )
 
 
@@ -150,7 +150,7 @@ def get_top_genres(df: pd.DataFrame, user_name: str, start: datetime, end: datet
         pd.Series([x for genres in genres_df for x in genres.split(";")])
         .value_counts()[:10]
         .to_frame()
-        .rename(columns={0: "genre"})
+        .rename(columns={"count": "genre"})
         .sort_values(by="genre")
     )
 
