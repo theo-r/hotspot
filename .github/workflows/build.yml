@@ -3,6 +3,7 @@ on:
     paths:
     - lambda/**
     - aws/**
+  workflow_dispatch:
 
 jobs:
   aws_cdk:
