@@ -92,6 +92,7 @@ class IngestManager:
 
 
 def lambda_handler(event, context):
+    logger.info(f"Python version: {sys.version}")
     ingest_manager = IngestManager()
     # cached tokens for each user
     caches = ingest_manager.get_caches()
