@@ -3,4 +3,4 @@ pre-commit==2.20.0
 mock==4.0.3
 boto3==1.28.40
 spotipy==2.21.0
-awswrangler==3.3.0
+awswrangler==3.13.0
