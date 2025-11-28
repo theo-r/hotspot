@@ -8,5 +8,5 @@ dependencies = [
     "awswrangler==3.4.2",
     "boto3==1.28.40",
     "pandas==2.3.3",
-    "streamlit==1.28.2",
+    "streamlit==1.51.0",
 ]
