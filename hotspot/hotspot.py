@@ -3,7 +3,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 import streamlit as st
 import requests
-import altair as alt
 
 from lib.utils import *
 
