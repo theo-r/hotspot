@@ -97,9 +97,9 @@ def render_page(
     listens_per_day = get_listens_per_day(
         df=df, user_name=user_name, start=start, end=end, dates_index=dates_index
     )
-    listens_by_hour_of_day = get_listens_by_hour_of_day(
-        df=df, user_name=user_name, start=start, end=end, num_tracks=num_tracks
-    )
+    # listens_by_hour_of_day = get_listens_by_hour_of_day(
+    # df=df, user_name=user_name, start=start, end=end, num_tracks=num_tracks
+    # )
     latest_tracks = get_latest_tracks(df=df, user_name=user_name, start=start, end=end)
 
     with st.container(horizontal=True, gap="large"):
@@ -177,16 +177,16 @@ def render_page(
                 )
             )
 
-    with cols[1].container(border=True, height="stretch"):
-        st.text("Listens per hour (%)")
-        st.altair_chart(
-            alt.Chart(listens_by_hour_of_day)
-            .mark_bar()
-            .encode(alt.X("hour:O"), alt.Y("count:Q").title("listen percentage"))
-        )
+    # with cols[1].container(border=True, height="stretch"):
+    #     st.text("Listens per hour (%)")
+    #     st.altair_chart(
+    #         alt.Chart(listens_by_hour_of_day)
+    #         .mark_bar()
+    #         .encode(alt.X("hour:O"), alt.Y("count:Q").title("listen percentage"))
+    #     )
 
-    cols = st.columns(2)
-    with cols[0].container(border=True, height="stretch"):
+    # cols = st.columns(2)
+    with cols[1].container(border=True, height="stretch"):
         st.text("Genres")
         st.altair_chart(
             alt.Chart(top_genres)
