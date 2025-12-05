@@ -42,8 +42,8 @@ def main():
 
     start_date = st.sidebar.date_input(
         "Start date:",
-        value=datetime.now() + timedelta(years=-1),
-        min_value=datetime.now() + timedelta(years=-1),
+        value=datetime.now() + timedelta(days=-364),
+        min_value=datetime.now() + timedelta(years=-364),
         max_value=datetime.now(),
     )
 
