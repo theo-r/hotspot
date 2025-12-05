@@ -5,6 +5,7 @@ import streamlit as st
 import requests
 
 from lib.utils import *
+import altair as alt
 
 boto3.setup_default_session(region_name="eu-west-1")
 
@@ -20,7 +21,7 @@ st.set_page_config(
 @st.cache_data(ttl=3600, show_spinner=False)
 def load_data():
     res = requests.get(
-        "https://ddhry4h9th.execute-api.eu-west-1.amazonaws.com/prod/past_month"
+        "https://ddhry4h9th.execute-api.eu-west-1.amazonaws.com/prod/past_year"
     )
     df = pd.DataFrame(res.json()["body"])
     df["played_at"] = [datetime.fromtimestamp(a / 1000) for a in df["played_at"]]
@@ -42,7 +43,7 @@ def main():
     start_date = st.sidebar.date_input(
         "Start date:",
         value=datetime.now() + timedelta(days=-30),
-        min_value=datetime.now() + timedelta(days=-30),
+        # min_value=datetime.now() + timedelta(days=-30),
         max_value=datetime.now(),
     )
 
@@ -58,7 +59,7 @@ def main():
         days=1
     )
 
-    num_days = (end - start).days
+    num_days = (end - start).days - 1
     dates_index = pd.DataFrame(
         {"dates": [(start + timedelta(days=x)).date() for x in range(num_days)]}
     )
@@ -100,13 +101,6 @@ def render_page(
         df=df, user_name=user_name, start=start, end=end, num_tracks=num_tracks
     )
     latest_tracks = get_latest_tracks(df=df, user_name=user_name, start=start, end=end)
-
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.image(top10_albums[0])
-    c2.image(top10_albums[1])
-    c3.image(top10_albums[2])
-    c4.image(top10_albums[3])
-    c5.image(top10_albums[4])
 
     with st.container(horizontal=True, gap="large"):
         cols = st.columns(2, gap="medium", width=300)
@@ -153,23 +147,54 @@ def render_page(
 
     with cols[0].container(border=True, height="stretch"):
         st.text("Listens per day")
-        st.line_chart(listens_per_day)
+        if user_name == "All":
+            st.altair_chart(
+                alt.Chart(listens_per_day)
+                .mark_line(size=1)
+                .transform_window(
+                    avg_listens="mean(listens)",
+                    frame=[0, 14],
+                    groupby=["user"],
+                )
+                .encode(
+                    alt.X("date:T"),
+                    alt.Y("avg_listens:Q").title("avg listens in last 2 weeks"),
+                    alt.Color("user:N"),
+                )
+            )
+        else:
+            st.altair_chart(
+                alt.Chart(listens_per_day)
+                .mark_line(size=1)
+                .transform_window(
+                    avg_listens="mean(listens)",
+                    frame=[0, 14],
+                    groupby=["monthdate(date)"],
+                )
+                .encode(
+                    alt.X("date:T"),
+                    alt.Y("avg_listens:Q").title("avg listens in last 2 weeks"),
+                )
+            )
 
     with cols[1].container(border=True, height="stretch"):
         st.text("Listens per hour (%)")
-        st.bar_chart(listens_by_hour_of_day)
+        st.altair_chart(
+            alt.Chart(listens_by_hour_of_day)
+            .mark_bar()
+            .encode(alt.X("hour:O"), alt.Y("count:Q").title("listen percentage"))
+        )
 
     cols = st.columns(2)
     with cols[0].container(border=True, height="stretch"):
         st.text("Genres")
-        st.bar_chart(top_genres, use_container_width=True)
-
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.image(top10_albums[5])
-    c2.image(top10_albums[6])
-    c3.image(top10_albums[7])
-    c4.image(top10_albums[8])
-    c5.image(top10_albums[9])
+        st.altair_chart(
+            alt.Chart(top_genres)
+            .mark_bar()
+            .encode(
+                alt.X("genre:N").sort("-y"), alt.Y("count:Q").title("total listens")
+            )
+        )
 
 
 if __name__ == "__main__":

@@ -91,8 +91,8 @@ def get_top_genres(df: pd.DataFrame, user_name: str, start: datetime, end: datet
         pd.Series([x for genres in genres_df for x in genres.split(";")])
         .value_counts()[:10]
         .to_frame()
-        .rename(columns={"count": "genre"})
-        .sort_values(by="genre")
+        .reset_index()
+        .rename(columns={"index": "genre"})
     )
 
 
@@ -144,10 +144,12 @@ def get_listens_per_day(
             .size()
             .replace(np.nan, 0)
             .to_frame()
-            .rename(columns={0: user})
+            .rename(columns={0: "listens"})
+            .astype({"listens": int})
+            .assign(user=user)
             for user in users
         ]
-        result = pd.concat(dfs, axis=1)
+        result = pd.concat(dfs, axis=0)
     else:
         result = (
             df[df["user_name"] == user_name][df["played_at"] > start][
@@ -157,13 +159,15 @@ def get_listens_per_day(
             .size()
             .to_frame()
             .rename(columns={0: "listens"})
+            .astype({"listens": int})
         )
-
-    return (
+    final_df = (
         pd.merge(result, dates_index, how="outer", left_index=True, right_on="dates")
         .set_index("dates")
         .replace(np.nan, 0)
     )
+    final_df["date"] = pd.to_datetime(final_df.index)
+    return final_df
 
 
 def get_listens_by_hour_of_day(
@@ -176,7 +180,7 @@ def get_listens_by_hour_of_day(
             .sort_index()
             / num_tracks
             * 100
-        )
+        ).reset_index()
     else:
         return (
             df[df["user_name"] == user_name][df["played_at"] > start][
@@ -186,7 +190,7 @@ def get_listens_by_hour_of_day(
             .sort_index()
             / num_tracks
             * 100
-        )
+        ).reset_index()
 
 
 def get_latest_tracks(df: pd.DataFrame, user_name: str, start: datetime, end: datetime):
