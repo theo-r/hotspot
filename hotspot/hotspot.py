@@ -42,8 +42,8 @@ def main():
 
     start_date = st.sidebar.date_input(
         "Start date:",
-        value=datetime.now() + timedelta(days=-30),
-        # min_value=datetime.now() + timedelta(days=-30),
+        value=datetime.now() + timedelta(years=-1),
+        min_value=datetime.now() + timedelta(years=-1),
         max_value=datetime.now(),
     )
 
@@ -59,9 +59,9 @@ def main():
         days=1
     )
 
-    num_days = (end - start).days - 1
+    num_days = (end - start).days
     dates_index = pd.DataFrame(
-        {"dates": [(start + timedelta(days=x)).date() for x in range(num_days)]}
+        {"dates": [(start + timedelta(days=x)).date() for x in range(num_days - 1)]}
     )
 
     df: pd.DataFrame = load_data()
