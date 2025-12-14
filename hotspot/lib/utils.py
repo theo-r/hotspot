@@ -162,7 +162,7 @@ def get_listens_per_day(
             .astype({"listens": int})
         )
     final_df = (
-        pd.merge(result, dates_index, how="outer", left_index=True, right_on="dates")
+        pd.merge(result, dates_index, how="right", left_index=True, right_on="dates")
         .set_index("dates")
         .replace(np.nan, 0)
     )

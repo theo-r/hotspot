@@ -42,8 +42,8 @@ def main():
 
     start_date = st.sidebar.date_input(
         "Start date:",
-        value=datetime.now() + timedelta(days=-364),
-        min_value=datetime.now() + timedelta(days=-364),
+        value=datetime.now() + timedelta(days=-365),
+        min_value=datetime.now() + timedelta(days=-365),
         max_value=datetime.now(),
     )
 
@@ -65,6 +65,8 @@ def main():
     )
 
     df: pd.DataFrame = load_data()
+    st.write(f"{start=}, {end=}, {num_days=}")
+    st.dataframe(dates_index)
     render_page(
         df=df, user_name=user_name, start=start, end=end, dates_index=dates_index
     )
@@ -195,6 +197,23 @@ def render_page(
                 alt.X("genre:N").sort("-y"), alt.Y("count:Q").title("total listens")
             )
         )
+
+    if user_name == "All":
+        cols = st.columns(2)
+        with cols[0].container(border=True, height="stretch"):
+            st.text("Listen Distribution")
+            st.altair_chart(
+                alt.Chart(listens_per_day)
+                .mark_arc()
+                .transform_aggregate(
+                    sum="sum(listens)",
+                    groupby=["user"],
+                )
+                .encode(
+                    alt.Theta("sum:Q"),
+                    alt.Color("user:N"),
+                )
+            )
 
 
 if __name__ == "__main__":
