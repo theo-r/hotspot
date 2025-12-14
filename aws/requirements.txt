@@ -1,2 +1,0 @@
-aws-cdk-lib
-aws_cdk.aws_glue_alpha
