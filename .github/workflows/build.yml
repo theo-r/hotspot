@@ -15,6 +15,11 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.17"
+
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -24,27 +29,22 @@ jobs:
         run: |
           npm install -g aws-cdk
 
-      - name: Install unit testing python dependencies
+      - name: Install python build dependencies
         run: |
-          pip install -r requirements.txt
+          uv sync --locked
 
       - name: pre-commit
         run: |
-          pre-commit run --all-files
+          uv run pre-commit run --all-files
 
       - name: Run test suite
         run: |
-          pytest
-
-      - name: Install cdk python dependencies
-        working-directory: ./aws
-        run: |
-          pip install -r requirements.txt
+          uv run pytest
 
       - name: Synth CDK
         working-directory: ./aws
         run: |
-          cdk synth --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}'
+          uv run cdk synth --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -52,7 +52,7 @@ jobs:
       - name: Deploy CDK
         working-directory: ./aws
         run: |
-          cdk deploy --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}' --require-approval never "*"
+          uv run cdk deploy --app 'python app.py ${{ secrets.AWS_ACCOUNT }} ${{ secrets.AWS_REGION }}' --require-approval never "*"
         # if: github.ref == 'refs/heads/master'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
