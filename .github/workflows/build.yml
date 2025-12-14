@@ -31,7 +31,7 @@ jobs:
 
       - name: Install python build dependencies
         run: |
-          uv sync --locked
+          uv sync --locked --no-default-groups
 
       - name: pre-commit
         run: |
