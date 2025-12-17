@@ -138,18 +138,33 @@ def get_listens_per_day(
     dates_index: pd.DataFrame,
 ):
     if user_name == "All":
-        dfs = [
-            df[df["user_name"] == user][df["played_at"] > start][df["played_at"] <= end]
-            .groupby("date")
-            .size()
-            .replace(np.nan, 0)
-            .to_frame()
-            .rename(columns={0: "listens"})
-            .astype({"listens": int})
-            .assign(user=user)
-            for user in users
-        ]
-        result = pd.concat(dfs, axis=0)
+        final_dfs = []
+        for user in users:
+            transformed = (
+                df[df["user_name"] == user][df["played_at"] > start][
+                    df["played_at"] <= end
+                ]
+                .groupby("date")
+                .size()
+                .to_frame()
+                .rename(columns={0: "listens"})
+                .astype({"listens": int})
+            )
+            merged = (
+                pd.merge(
+                    transformed,
+                    dates_index,
+                    how="right",
+                    left_index=True,
+                    right_on="dates",
+                )
+                .set_index("dates")
+                .replace(np.nan, 0)
+                .assign(user=user)
+            )
+            final_dfs.append(merged)
+
+        final_df = pd.concat(final_dfs, axis=0)
     else:
         result = (
             df[df["user_name"] == user_name][df["played_at"] > start][
@@ -161,11 +176,14 @@ def get_listens_per_day(
             .rename(columns={0: "listens"})
             .astype({"listens": int})
         )
-    final_df = (
-        pd.merge(result, dates_index, how="outer", left_index=True, right_on="dates")
-        .set_index("dates")
-        .replace(np.nan, 0)
-    )
+        final_df = (
+            pd.merge(
+                result, dates_index, how="right", left_index=True, right_on="dates"
+            )
+            .set_index("dates")
+            .replace(np.nan, 0)
+        )
+
     final_df["date"] = pd.to_datetime(final_df.index)
     return final_df
 

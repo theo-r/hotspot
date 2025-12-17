@@ -42,8 +42,8 @@ def main():
 
     start_date = st.sidebar.date_input(
         "Start date:",
-        value=datetime.now() + timedelta(days=-364),
-        min_value=datetime.now() + timedelta(days=-364),
+        value=datetime.now() + timedelta(days=-365),
+        min_value=datetime.now() + timedelta(days=-365),
         max_value=datetime.now(),
     )
 
@@ -153,7 +153,7 @@ def render_page(
                 .mark_line(size=1)
                 .transform_window(
                     avg_listens="mean(listens)",
-                    frame=[0, 14],
+                    frame=[-14, 0],
                     groupby=["user"],
                 )
                 .encode(
@@ -168,8 +168,8 @@ def render_page(
                 .mark_line(size=1)
                 .transform_window(
                     avg_listens="mean(listens)",
-                    frame=[0, 14],
-                    groupby=["monthdate(date)"],
+                    frame=[-14, 0],
+                    # groupby=["monthdate(date)"],
                 )
                 .encode(
                     alt.X("date:T"),
@@ -195,6 +195,23 @@ def render_page(
                 alt.X("genre:N").sort("-y"), alt.Y("count:Q").title("total listens")
             )
         )
+
+    if user_name == "All":
+        cols = st.columns(2)
+        with cols[0].container(border=True, height="stretch"):
+            st.text("Listen Distribution")
+            st.altair_chart(
+                alt.Chart(listens_per_day)
+                .mark_arc()
+                .transform_aggregate(
+                    sum="sum(listens)",
+                    groupby=["user"],
+                )
+                .encode(
+                    alt.Theta("sum:Q"),
+                    alt.Color("user:N"),
+                )
+            )
 
 
 if __name__ == "__main__":
