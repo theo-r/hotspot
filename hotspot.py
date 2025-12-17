@@ -63,10 +63,22 @@ def main():
     dates_index = pd.DataFrame(
         {"dates": [(start + timedelta(days=x)).date() for x in range(num_days - 1)]}
     )
+    months_frame = pd.DataFrame(
+        {
+            "months": [pd.to_datetime(start)]
+            + pd.date_range(start=start, end=end, freq="MS", inclusive="both").to_list()
+        }
+    )
+    month_years = months_frame["months"].dt.strftime("%b %y").to_list()
 
     df: pd.DataFrame = load_data()
     render_page(
-        df=df, user_name=user_name, start=start, end=end, dates_index=dates_index
+        df=df,
+        user_name=user_name,
+        start=start,
+        end=end,
+        dates_index=dates_index,
+        month_years=month_years,
     )
 
 
@@ -76,6 +88,7 @@ def render_page(
     start: datetime,
     end: datetime,
     dates_index: pd.DataFrame,
+    month_years: list[str],
 ):
     top_artists = get_top_artists(df=df, user_name=user_name, start=start, end=end)
     distinct_artists = len(set(top_artists["artist"].to_list()))
@@ -177,15 +190,6 @@ def render_page(
                 )
             )
 
-    # with cols[1].container(border=True, height="stretch"):
-    #     st.text("Listens per hour (%)")
-    #     st.altair_chart(
-    #         alt.Chart(listens_by_hour_of_day)
-    #         .mark_bar()
-    #         .encode(alt.X("hour:O"), alt.Y("count:Q").title("listen percentage"))
-    #     )
-
-    # cols = st.columns(2)
     with cols[1].container(border=True, height="stretch"):
         st.text("Genres")
         st.altair_chart(
@@ -211,6 +215,23 @@ def render_page(
                     alt.Theta("sum:Q"),
                     alt.Color("user:N"),
                 )
+            )
+
+        with cols[1].container(border=True, height="stretch"):
+            st.text("Monthly Listen Distribution")
+            st.altair_chart(
+                alt.Chart(listens_per_day)
+                .mark_bar()
+                .transform_aggregate(
+                    sum="sum(listens)",
+                    groupby=["user", "month_year"],
+                )
+                .encode(
+                    alt.X("month_year:O", title="month", sort=month_years),
+                    alt.Y("sum:Q", title="listens").stack("normalize"),
+                    alt.Color("user:N"),
+                )
+                .configure_legend(orient="bottom")
             )
 
 
