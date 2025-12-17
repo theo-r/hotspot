@@ -185,6 +185,7 @@ def get_listens_per_day(
         )
 
     final_df["date"] = pd.to_datetime(final_df.index)
+    final_df["month_year"] = final_df["date"].dt.strftime("%b %y")
     return final_df
 
 
