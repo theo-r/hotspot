@@ -65,8 +65,6 @@ def main():
     )
 
     df: pd.DataFrame = load_data()
-    st.write(f"{start=}, {end=}, {num_days=}")
-    st.dataframe(dates_index)
     render_page(
         df=df, user_name=user_name, start=start, end=end, dates_index=dates_index
     )
@@ -155,7 +153,7 @@ def render_page(
                 .mark_line(size=1)
                 .transform_window(
                     avg_listens="mean(listens)",
-                    frame=[0, 14],
+                    frame=[-14, 0],
                     groupby=["user"],
                 )
                 .encode(
@@ -170,8 +168,8 @@ def render_page(
                 .mark_line(size=1)
                 .transform_window(
                     avg_listens="mean(listens)",
-                    frame=[0, 14],
-                    groupby=["monthdate(date)"],
+                    frame=[-14, 0],
+                    # groupby=["monthdate(date)"],
                 )
                 .encode(
                     alt.X("date:T"),
