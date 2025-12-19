@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-cols = ["name", "artist_name", "album_name", "played_at", "user_name"]
+cols = ["name", "artist_name", "album_name", "played_at", "user_name", "album_image"]
 users = ["Dan", "Fred", "George", "Theo"]
 
 
@@ -30,9 +30,9 @@ def get_top_artists(df: pd.DataFrame, user_name: str, start: datetime, end: date
 def get_top_tracks(df: pd.DataFrame, user_name: str, start: datetime, end: datetime):
     if user_name == "All":
         return (
-            df[["name", "artist_name", "album_image"]][df["played_at"] > start][
-                df["played_at"] <= end
-            ]
+            df[["name", "artist_name", "album_image", "user_name"]][
+                df["played_at"] > start
+            ][df["played_at"] <= end]
             .value_counts()
             .to_frame()
             .reset_index(drop=False)
@@ -51,9 +51,9 @@ def get_top_tracks(df: pd.DataFrame, user_name: str, start: datetime, end: datet
 def get_top_albums(df: pd.DataFrame, user_name: str, start: datetime, end: datetime):
     if user_name == "All":
         return (
-            df[["artist_name", "album_name", "album_image"]][df["played_at"] > start][
-                df["played_at"] <= end
-            ]
+            df[["artist_name", "album_name", "album_image", "user_name"]][
+                df["played_at"] > start
+            ][df["played_at"] <= end]
             .value_counts()
             .to_frame()
             .reset_index(drop=False)
