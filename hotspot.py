@@ -10,6 +10,12 @@ import altair as alt
 boto3.setup_default_session(region_name="eu-west-1")
 
 users = ["Dan", "Fred", "George", "Theo"]
+user_colours = {
+    "Dan": "red",
+    "Fred": "green",
+    "George": "blue",
+    "Theo": "orange",
+}
 
 st.set_page_config(
     page_title="Hotspot",
@@ -227,32 +233,45 @@ def render_page(
             )
 
     with st.container(horizontal=True, gap="large"):
-        cols = st.columns(2, gap="small", width=2000, border=True)
+        cols = st.columns(3, border=True)
         with cols[0]:
             tt = top_tracks[:5].to_dict(orient="records")
             st.text("Top Tracks")
             for i, t in enumerate(tt):
-                inner_cols = st.columns(2, gap="small", width=250)
+                inner_cols = st.columns(2, gap=None, width=300)
                 with inner_cols[0]:
-                    st.image(t["album_image"], width=75)
+                    st.image(t["album_image"], width=112)
                 with inner_cols[1]:
-                    multi = f"""**{t["artist_name"]}**
-                    {t["name"]}
-                    """
-                    st.markdown(multi)
+                    st.markdown(f"**{t["artist_name"]}**")
+                    st.markdown(f"{t["name"]}")
+                    if user_name == "All":
+                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
 
         with cols[1]:
             ta = top_albums[:5].to_dict(orient="records")
             st.text("Top Albums")
             for i, t in enumerate(ta):
-                inner_cols = st.columns(2, gap="small", width=250)
+                inner_cols = st.columns(2, gap=None, width=300)
                 with inner_cols[0]:
-                    st.image(t["album_image"], width=75)
+                    st.image(t["album_image"], width=112)
                 with inner_cols[1]:
-                    multi = f"""**{t["artist_name"]}**
-                    {t["album_name"]}
-                    """
-                    st.markdown(multi)
+                    st.markdown(f"**{t["artist_name"]}**")
+                    st.markdown(f"{t["album_name"]}")
+                    if user_name == "All":
+                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
+
+        with cols[2]:
+            lt = latest_tracks[:5].to_dict(orient="records")
+            st.text("Latest Tracks")
+            for i, t in enumerate(lt):
+                inner_cols = st.columns(2, gap=None, width=300)
+                with inner_cols[0]:
+                    st.image(t["album_image"], width=112)
+                with inner_cols[1]:
+                    st.markdown(f"**{t["artist_name"]}**")
+                    st.markdown(f"{t["name"]}")
+                    if user_name == "All":
+                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
 
 
 if __name__ == "__main__":
