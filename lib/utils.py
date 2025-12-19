@@ -30,42 +30,42 @@ def get_top_artists(df: pd.DataFrame, user_name: str, start: datetime, end: date
 def get_top_tracks(df: pd.DataFrame, user_name: str, start: datetime, end: datetime):
     if user_name == "All":
         return (
-            df["name"][df["played_at"] > start][df["played_at"] <= end]
-            .value_counts()
-            .to_frame()
-            .reset_index(drop=False)
-            .rename(columns={"index": "track", "name": "plays"})
-        )
-    else:
-        return (
-            df["name"][df["user_name"] == user_name][df["played_at"] > start][
+            df[["name", "artist_name", "album_image"]][df["played_at"] > start][
                 df["played_at"] <= end
             ]
             .value_counts()
             .to_frame()
             .reset_index(drop=False)
-            .rename(columns={"index": "track", "name": "plays"})
+        )
+    else:
+        return (
+            df[["name", "artist_name", "album_image"]][df["user_name"] == user_name][
+                df["played_at"] > start
+            ][df["played_at"] <= end]
+            .value_counts()
+            .to_frame()
+            .reset_index(drop=False)
         )
 
 
 def get_top_albums(df: pd.DataFrame, user_name: str, start: datetime, end: datetime):
     if user_name == "All":
         return (
-            df["album_name"][df["played_at"] > start][df["played_at"] <= end]
-            .value_counts()
-            .to_frame()
-            .reset_index(drop=False)
-            .rename(columns={"album_name": "album", "count": "plays"})
-        )
-    else:
-        return (
-            df["album_name"][df["user_name"] == user_name][df["played_at"] > start][
+            df[["artist_name", "album_name", "album_image"]][df["played_at"] > start][
                 df["played_at"] <= end
             ]
             .value_counts()
             .to_frame()
             .reset_index(drop=False)
-            .rename(columns={"album_name": "album", "count": "plays"})
+        )
+    else:
+        return (
+            df[["artist_name", "album_name", "album_image"]][
+                df["user_name"] == user_name
+            ][df["played_at"] > start][df["played_at"] <= end]
+            .value_counts()
+            .to_frame()
+            .reset_index(drop=False)
         )
 
 

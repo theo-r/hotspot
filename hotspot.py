@@ -37,7 +37,7 @@ def load_data():
 def main():
     user_name = st.sidebar.selectbox(
         label="Select a user",
-        options=users + ["All"],
+        options=["All"] + users,
     )
 
     start_date = st.sidebar.date_input(
@@ -99,7 +99,7 @@ def render_page(
         df=df, user_name=user_name, start=start, end=end
     )
     top10_albums = top_album_images[:10]["album_image"].to_list()
-    distinct_albums = len(set(top_albums["album"].to_list()))
+    distinct_albums = len(set(top_albums["album_name"].to_list()))
 
     if distinct_albums < 1:
         st.write("Something went wrong: number of distinct albums less than 1")
@@ -116,7 +116,7 @@ def render_page(
     latest_tracks = get_latest_tracks(df=df, user_name=user_name, start=start, end=end)
 
     with st.container(horizontal=True, gap="large"):
-        cols = st.columns(2, gap="medium", width=300)
+        cols = st.columns(2, gap="medium", width=500)
 
         with cols[0]:
             st.metric(
@@ -132,7 +132,7 @@ def render_page(
                 width="content",
             )
 
-        cols = st.columns(2, gap="medium", width=300)
+        cols = st.columns(2, gap="medium", width=500)
 
         with cols[0]:
             st.metric(
@@ -147,14 +147,6 @@ def render_page(
                 f"{round(duration, 1)}hrs",
                 width="content",
             )
-
-    col1, col2, col3 = st.columns(3)
-    col1.header("Top tracks")
-    col1.dataframe(top_tracks)
-    col2.header("Top artists")
-    col2.dataframe(top_artists)
-    col3.header("Top albums")
-    col3.dataframe(top_albums)
 
     cols = st.columns(2)
 
@@ -233,6 +225,34 @@ def render_page(
                 )
                 .configure_legend(orient="bottom")
             )
+
+    with st.container(horizontal=True, gap="large"):
+        cols = st.columns(2, gap="small", width=2000, border=True)
+        with cols[0]:
+            tt = top_tracks[:5].to_dict(orient="records")
+            st.text("Top Tracks")
+            for i, t in enumerate(tt):
+                inner_cols = st.columns(2, gap="small", width=250)
+                with inner_cols[0]:
+                    st.image(t["album_image"], width=75)
+                with inner_cols[1]:
+                    multi = f"""**{t["artist_name"]}**
+                    {t["name"]}
+                    """
+                    st.markdown(multi)
+
+        with cols[1]:
+            ta = top_albums[:5].to_dict(orient="records")
+            st.text("Top Albums")
+            for i, t in enumerate(ta):
+                inner_cols = st.columns(2, gap="small", width=250)
+                with inner_cols[0]:
+                    st.image(t["album_image"], width=75)
+                with inner_cols[1]:
+                    multi = f"""**{t["artist_name"]}**
+                    {t["album_name"]}
+                    """
+                    st.markdown(multi)
 
 
 if __name__ == "__main__":
