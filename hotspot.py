@@ -180,7 +180,6 @@ def render_page(
                 .transform_window(
                     avg_listens="mean(listens)",
                     frame=[-14, 0],
-                    # groupby=["monthdate(date)"],
                 )
                 .encode(
                     alt.X("date:T"),
@@ -238,27 +237,31 @@ def render_page(
             tt = top_tracks[:5].to_dict(orient="records")
             st.text("Top Tracks")
             for i, t in enumerate(tt):
-                inner_cols = st.columns(2, gap=None, width=300)
+                inner_cols = st.columns(3, gap=None)
                 with inner_cols[0]:
-                    st.image(t["album_image"], width=112)
+                    st.image(t["album_image"], width=100)
                 with inner_cols[1]:
                     st.markdown(f"**{t["artist_name"]}**")
                     st.markdown(f"{t["name"]}")
                     if user_name == "All":
                         st.badge(t["user_name"], color=user_colours[t["user_name"]])
+                with inner_cols[2]:
+                    st.metric(label="plays", value=t["count"])
 
         with cols[1]:
             ta = top_albums[:5].to_dict(orient="records")
             st.text("Top Albums")
             for i, t in enumerate(ta):
-                inner_cols = st.columns(2, gap=None, width=300)
+                inner_cols = st.columns(3, gap=None)
                 with inner_cols[0]:
-                    st.image(t["album_image"], width=112)
+                    st.image(t["album_image"], width=100)
                 with inner_cols[1]:
                     st.markdown(f"**{t["artist_name"]}**")
                     st.markdown(f"{t["album_name"]}")
                     if user_name == "All":
                         st.badge(t["user_name"], color=user_colours[t["user_name"]])
+                with inner_cols[2]:
+                    st.metric(label="plays", value=t["count"])
 
         with cols[2]:
             lt = latest_tracks[:5].to_dict(orient="records")
@@ -266,7 +269,7 @@ def render_page(
             for i, t in enumerate(lt):
                 inner_cols = st.columns(2, gap=None, width=300)
                 with inner_cols[0]:
-                    st.image(t["album_image"], width=112)
+                    st.image(t["album_image"], width=100)
                 with inner_cols[1]:
                     st.markdown(f"**{t["artist_name"]}**")
                     st.markdown(f"{t["name"]}")
