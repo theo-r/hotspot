@@ -1,9 +1,27 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import streamlit as st
+import requests
 
 cols = ["name", "artist_name", "album_name", "played_at", "user_name", "album_image"]
 users = ["Dan", "Fred", "George", "Theo"]
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_data():
+    res = requests.get(
+        "https://ddhry4h9th.execute-api.eu-west-1.amazonaws.com/prod/past_year"
+    )
+    df = pd.DataFrame(res.json()["body"])
+    df["played_at"] = [datetime.fromtimestamp(a / 1000) for a in df["played_at"]]
+    df["date"] = df["played_at"].dt.date
+    df["year"] = df["played_at"].dt.year
+    df["month"] = df["played_at"].dt.month
+    df["day"] = df["played_at"].dt.day
+    df["hour"] = df["played_at"].dt.hour
+    df["dayofweek"] = df["played_at"].dt.dayofweek
+    return df
 
 
 def get_top_artists(df: pd.DataFrame, user_names: list, start: datetime, end: datetime):
@@ -104,26 +122,17 @@ def get_listens_per_day(
 
 
 def get_listens_by_hour_of_day(
-    df: pd.DataFrame, user_name: str, start: datetime, end: datetime, num_tracks: int
+    df: pd.DataFrame, user_names: list, start: datetime, end: datetime, num_tracks: int
 ):
-    if user_name == "All":
-        return (
-            df[df["played_at"] > start][df["played_at"] <= end]
-            .hour.value_counts()
-            .sort_index()
-            / num_tracks
-            * 100
-        ).reset_index()
-    else:
-        return (
-            df[df["user_name"] == user_name][df["played_at"] > start][
-                df["played_at"] <= end
-            ]
-            .hour.value_counts()
-            .sort_index()
-            / num_tracks
-            * 100
-        ).reset_index()
+    return (
+        df[df["user_name"].isin(user_names)][df["played_at"] > start][
+            df["played_at"] <= end
+        ]
+        .hour.value_counts()
+        .sort_index()
+        / num_tracks
+        * 100
+    ).reset_index()
 
 
 def get_latest_tracks(

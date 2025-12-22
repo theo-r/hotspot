@@ -2,12 +2,17 @@ import boto3
 import pandas as pd
 from datetime import datetime, timedelta
 import streamlit as st
-import requests
 
 from lib.utils import *
 import altair as alt
 
 boto3.setup_default_session(region_name="eu-west-1")
+
+st.set_page_config(
+    page_title="Hotspot",
+    page_icon="💿",
+    layout="wide",
+)
 
 users = ["Dan", "Fred", "George", "Theo"]
 user_colours = {
@@ -17,46 +22,29 @@ user_colours = {
     "Theo": "orange",
 }
 
-st.set_page_config(
-    page_title="Hotspot",
-    page_icon="💿",
-    layout="wide",
-)
-
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def load_data():
-    res = requests.get(
-        "https://ddhry4h9th.execute-api.eu-west-1.amazonaws.com/prod/past_year"
-    )
-    df = pd.DataFrame(res.json()["body"])
-    df["played_at"] = [datetime.fromtimestamp(a / 1000) for a in df["played_at"]]
-    df["date"] = df["played_at"].dt.date
-    df["year"] = df["played_at"].dt.year
-    df["month"] = df["played_at"].dt.month
-    df["day"] = df["played_at"].dt.day
-    df["hour"] = df["played_at"].dt.hour
-    df["dayofweek"] = df["played_at"].dt.dayofweek
-    return df
-
 
 def main():
-    start_date = st.date_input(
-        "Start date:",
-        value=datetime.now() + timedelta(days=-365),
-        min_value=datetime.now() + timedelta(days=-365),
-        max_value=datetime.now(),
-    )
+    st.title("Hotspot")
 
-    end_date = st.date_input(
-        "End date:",
-        value=datetime.now(),
-        min_value=start_date + timedelta(days=1),
-        max_value=datetime.now(),
-    )
+    with st.container(horizontal=True):
+        date_columns = st.columns(2, gap="medium", width=500)
+        with date_columns[0]:
+            start_date = st.date_input(
+                "Select start date:",
+                value=datetime.now() + timedelta(days=-365),
+                min_value=datetime.now() + timedelta(days=-365),
+                max_value=datetime.now(),
+            )
+        with date_columns[1]:
+            end_date = st.date_input(
+                "Select end date:",
+                value=datetime.now(),
+                min_value=start_date + timedelta(days=1),
+                max_value=datetime.now(),
+            )
 
     user_names = st.pills(
-        label="Select users", options=users, selection_mode="multi", default=users
+        label="Select users:", options=users, selection_mode="multi", default=users
     )
 
     if len(user_names) < 1:
@@ -81,49 +69,28 @@ def main():
     month_years = months_frame["months"].dt.strftime("%b %y").to_list()
 
     df: pd.DataFrame = load_data()
-    render_page(
-        df=df,
-        user_names=user_names,
-        start=start,
-        end=end,
-        dates_index=dates_index,
-        month_years=month_years,
-    )
 
-
-def render_page(
-    df: pd.DataFrame,
-    user_names: list,
-    start: datetime,
-    end: datetime,
-    dates_index: pd.DataFrame,
-    month_years: list[str],
-):
     top_artists = get_top_artists(df=df, user_names=user_names, start=start, end=end)
     distinct_artists = len(set(top_artists["artist"].to_list()))
     top_tracks = get_top_tracks(df=df, user_names=user_names, start=start, end=end)
     top_albums = get_top_albums(df=df, user_names=user_names, start=start, end=end)
     top_genres = get_top_genres(df=df, user_names=user_names, start=start, end=end)
     distinct_albums = len(set(top_albums["album_name"].to_list()))
-
-    if distinct_albums < 1:
-        st.write("Something went wrong: number of distinct albums less than 1")
-
     all_tracks = get_all_tracks(df=df, user_names=user_names, start=start, end=end)
     num_tracks = all_tracks.shape[0]
     duration = all_tracks["duration_ms"].sum() / 3600000
     listens_per_day = get_listens_per_day(
         df=df, user_names=user_names, start=start, end=end, dates_index=dates_index
     )
-    # listens_by_hour_of_day = get_listens_by_hour_of_day(
-    # df=df, user_name=user_name, start=start, end=end, num_tracks=num_tracks
-    # )
     latest_tracks = get_latest_tracks(
         df=df, user_names=user_names, start=start, end=end
     )
+    # listens_by_hour_of_day = get_listens_by_hour_of_day(
+    # df=df, user_names=user_names, start=start, end=end, num_tracks=num_tracks
+    # )
 
-    with st.container(horizontal=True, gap="large"):
-        cols = st.columns(2, gap="medium", width=500)
+    with st.container(horizontal=True, gap="large", border=True):
+        cols = st.columns(4)
 
         with cols[0]:
             st.metric(
@@ -139,16 +106,14 @@ def render_page(
                 width="content",
             )
 
-        cols = st.columns(2, gap="medium", width=500)
-
-        with cols[0]:
+        with cols[2]:
             st.metric(
                 "Albums",
                 distinct_albums,
                 width="content",
             )
 
-        with cols[1]:
+        with cols[3]:
             st.metric(
                 "Play Time",
                 f"{round(duration, 1)}hrs",
@@ -221,44 +186,50 @@ def render_page(
     with st.container(horizontal=True, gap="large"):
         cols = st.columns(3, border=True)
         with cols[0]:
-            tt = top_tracks[:5].to_dict(orient="records")
+            tt = top_tracks[:10].to_dict(orient="records")
             st.text("Top Tracks")
             for i, t in enumerate(tt):
-                inner_cols = st.columns(3, gap=None)
-                with inner_cols[0]:
-                    st.image(t["album_image"], width=100)
-                with inner_cols[1]:
-                    st.markdown(f"**{t["artist_name"]}**")
-                    st.markdown(f"{t["name"]}")
-                    st.badge(t["user_name"], color=user_colours[t["user_name"]])
-                with inner_cols[2]:
-                    st.metric(label="plays", value=t["count"])
+                with st.container(horizontal=True, border=True):
+                    inner_cols = st.columns(3, gap=None)
+                    with inner_cols[0]:
+                        st.image(t["album_image"], width=100)
+                    with inner_cols[1]:
+                        st.markdown(f"**{t["artist_name"]}**")
+                        st.markdown(f"{t["name"]}")
+                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
+                    with inner_cols[2]:
+                        st.metric(label="plays", value=t["count"])
 
         with cols[1]:
-            ta = top_albums[:5].to_dict(orient="records")
+            ta = top_albums[:10].to_dict(orient="records")
             st.text("Top Albums")
             for i, t in enumerate(ta):
-                inner_cols = st.columns(3, gap=None)
-                with inner_cols[0]:
-                    st.image(t["album_image"], width=100)
-                with inner_cols[1]:
-                    st.markdown(f"**{t["artist_name"]}**")
-                    st.markdown(f"{t["album_name"]}")
-                    st.badge(t["user_name"], color=user_colours[t["user_name"]])
-                with inner_cols[2]:
-                    st.metric(label="plays", value=t["count"])
+                with st.container(horizontal=True, border=True):
+                    inner_cols = st.columns(3, gap=None)
+                    with inner_cols[0]:
+                        st.image(t["album_image"], width=100)
+                    with inner_cols[1]:
+                        st.markdown(f"**{t["artist_name"]}**")
+                        st.markdown(f"{t["album_name"]}")
+                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
+                    with inner_cols[2]:
+                        st.metric(label="plays", value=t["count"])
 
         with cols[2]:
-            lt = latest_tracks[:5].to_dict(orient="records")
+            lt = latest_tracks[:10].to_dict(orient="records")
             st.text("Latest Tracks")
             for i, t in enumerate(lt):
-                inner_cols = st.columns(2, gap=None, width=300)
-                with inner_cols[0]:
-                    st.image(t["album_image"], width=100)
-                with inner_cols[1]:
-                    st.markdown(f"**{t["artist_name"]}**")
-                    st.markdown(f"{t["name"]}")
-                    st.badge(t["user_name"], color=user_colours[t["user_name"]])
+                with st.container(
+                    horizontal=True,
+                    border=True,
+                ):
+                    inner_cols = st.columns(2, gap=None, width=300)
+                    with inner_cols[0]:
+                        st.image(t["album_image"], width=100)
+                    with inner_cols[1]:
+                        st.markdown(f"**{t["artist_name"]}**")
+                        st.markdown(f"{t["name"]}")
+                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
 
 
 if __name__ == "__main__":
