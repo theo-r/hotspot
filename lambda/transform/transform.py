@@ -19,6 +19,7 @@ COLS = [
     "album_name",
     "album_image",
     "artist_name",
+    "artist_image",
     "genres",
     "played_at",
     "user_name",
@@ -39,10 +40,13 @@ def lambda_handler(event, context):
     if "artists" in rp_json:
         artists = rp_json["artists"]
         items_df["genres"] = [";".join(artist["genres"]) for artist in artists]
+        items_df["artist_image"] = [artist["images"][1]["url"] for artist in artists]
     else:
         items_df["genres"] = ""
+        items_df["artist_image"] = ""
 
     track = transform_manager.prep_data(items_df)
+    track.to_json("me.json")
     res = transform_manager.push_data(track)
     logger.info(json.dumps(res, indent=2))
     return "200"
@@ -72,13 +76,12 @@ class TransformManager:
     def prep_data(items_df):
         track = pd.json_normalize(items_df.track)
         artist_name = [artist[0]["name"] for artist in track.artists]
-        artist_image = [artist[0]["images"][1] for artist in track.artists]
         album_image = [images[1]["url"] for images in track["album.images"]]
         track["artist_name"] = artist_name
-        track["artist_image"] = artist_image
         track["album_image"] = album_image
         track["album_name"] = track["album.name"]
         track["genres"] = items_df.genres.copy()
+        track["artist_image"] = items_df.artist_image.copy()
         track["user_name"] = items_df.user_name.copy()
         track["played_at"] = pd.to_datetime(items_df.played_at).copy()
         track = track[COLS]

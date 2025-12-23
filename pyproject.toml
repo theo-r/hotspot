@@ -22,4 +22,5 @@ dev = [
     "pre-commit>=4.5.0",
     "pytest>=7.2.0",
     "spotipy>=2.25.2",
+    "boto3[crt]>=1.28.78",
 ]
