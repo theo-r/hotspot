@@ -46,7 +46,6 @@ def lambda_handler(event, context):
         items_df["artist_image"] = ""
 
     track = transform_manager.prep_data(items_df)
-    track.to_json("me.json")
     res = transform_manager.push_data(track)
     logger.info(json.dumps(res, indent=2))
     return "200"
