@@ -4,7 +4,15 @@ from datetime import datetime
 import streamlit as st
 import requests
 
-cols = ["name", "artist_name", "album_name", "played_at", "user_name", "album_image"]
+cols = [
+    "name",
+    "artist_name",
+    "artist_image",
+    "album_name",
+    "played_at",
+    "user_name",
+    "album_image",
+]
 users = ["Dan", "Fred", "George", "Theo"]
 
 
@@ -26,9 +34,9 @@ def load_data():
 
 def get_top_artists(df: pd.DataFrame, user_names: list, start: datetime, end: datetime):
     return (
-        df["artist_name"][df["user_name"].isin(user_names)][df["played_at"] > start][
-            df["played_at"] <= end
-        ]
+        df[["artist_name", "artist_image", "user_name"]][
+            df["user_name"].isin(user_names)
+        ][df["played_at"] > start][df["played_at"] <= end]
         .value_counts()
         .to_frame()
         .reset_index(drop=False)
