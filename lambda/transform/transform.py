@@ -4,7 +4,6 @@ import os
 import boto3
 import awswrangler as wr
 import pandas as pd
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -72,10 +71,11 @@ class TransformManager:
     @staticmethod
     def prep_data(items_df):
         track = pd.json_normalize(items_df.track)
-        # only take primary artists
         artist_name = [artist[0]["name"] for artist in track.artists]
+        artist_image = [artist[0]["images"][1] for artist in track.artists]
         album_image = [images[1]["url"] for images in track["album.images"]]
         track["artist_name"] = artist_name
+        track["artist_image"] = artist_image
         track["album_image"] = album_image
         track["album_name"] = track["album.name"]
         track["genres"] = items_df.genres.copy()
