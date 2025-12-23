@@ -200,7 +200,7 @@ def main():
                     with inner_cols[2]:
                         st.metric(label="plays", value=t["count"])
 
-        with cols[1]:
+        with cols[2]:
             ta = top_albums[:10].to_dict(orient="records")
             st.text("Top Albums")
             for i, t in enumerate(ta):
@@ -215,21 +215,22 @@ def main():
                     with inner_cols[2]:
                         st.metric(label="plays", value=t["count"])
 
-        with cols[2]:
-            lt = latest_tracks[:10].to_dict(orient="records")
-            st.text("Latest Tracks")
-            for i, t in enumerate(lt):
+        with cols[1]:
+            ta = top_artists[:10].to_dict(orient="records")
+            st.text("Top Artists")
+            for i, t in enumerate(ta):
                 with st.container(
                     horizontal=True,
                     border=True,
                 ):
-                    inner_cols = st.columns(2, gap=None, width=300)
+                    inner_cols = st.columns(3, gap=None)
                     with inner_cols[0]:
-                        st.image(t["album_image"], width=100)
+                        st.image(t["artist_image"], width=100)
                     with inner_cols[1]:
-                        st.markdown(f"**{t["artist_name"]}**")
-                        st.markdown(f"{t["name"]}")
+                        st.markdown(f"**{t["artist"]}**")
                         st.badge(t["user_name"], color=user_colours[t["user_name"]])
+                    with inner_cols[2]:
+                        st.metric(label="plays", value=t["plays"])
 
 
 if __name__ == "__main__":
