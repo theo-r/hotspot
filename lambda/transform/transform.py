@@ -20,6 +20,7 @@ COLS = [
     "album_image",
     "artist_name",
     "artist_image",
+    "artist_id",
     "genres",
     "played_at",
     "user_name",
@@ -41,9 +42,11 @@ def lambda_handler(event, context):
         artists = rp_json["artists"]
         items_df["genres"] = [";".join(artist["genres"]) for artist in artists]
         items_df["artist_image"] = [artist["images"][1]["url"] for artist in artists]
+        items_df["artist_id"] = [artist["id"] for artist in artists]
     else:
         items_df["genres"] = ""
         items_df["artist_image"] = ""
+        items_df["artist_id"] = ""
 
     track = transform_manager.prep_data(items_df)
     res = transform_manager.push_data(track)
@@ -81,6 +84,7 @@ class TransformManager:
         track["album_name"] = track["album.name"]
         track["genres"] = items_df.genres.copy()
         track["artist_image"] = items_df.artist_image.copy()
+        track["artist_id"] = items_df.artist_id.copy()
         track["user_name"] = items_df.user_name.copy()
         track["played_at"] = pd.to_datetime(items_df.played_at).copy()
         track = track[COLS]
