@@ -1,39 +1,50 @@
-import boto3
-import pandas as pd
+"""Hotspot - Spotify listening analytics dashboard."""
+
 from datetime import datetime, timedelta
+
+import pandas as pd
 import streamlit as st
 
-from lib.utils import *
-import altair as alt
-
-boto3.setup_default_session(region_name="eu-west-1")
+from config import (
+    DEFAULT_LOOKBACK_DAYS,
+    PAGE_ICON,
+    PAGE_TITLE,
+    TOP_ITEMS_LIMIT,
+    USERS,
+)
+from components.cards import render_top_items
+from components.charts import (
+    create_genres_chart,
+    create_listen_distribution_pie_chart,
+    create_listens_per_day_chart,
+    create_monthly_distribution_chart,
+)
+from lib.utils import (
+    get_all_tracks,
+    get_listens_per_day,
+    get_top_albums,
+    get_top_artists,
+    get_top_genres,
+    get_top_tracks,
+    load_data,
+)
 
 st.set_page_config(
-    page_title="Hotspot",
-    page_icon="💿",
+    page_title=PAGE_TITLE,
+    page_icon=PAGE_ICON,
     layout="wide",
 )
 
-users = ["Dan", "Fred", "George", "Claire", "Theo"]
-user_colours = {
-    "Dan": "red",
-    "Fred": "green",
-    "George": "blue",
-    "Claire": "violet",
-    "Theo": "orange",
-}
 
-
-def main():
-    st.title("Hotspot")
-
+def render_date_selector() -> tuple[datetime, datetime]:
+    """Render date range selector and return start/end datetimes."""
     with st.container(horizontal=True):
         date_columns = st.columns(2, gap="medium", width=500)
         with date_columns[0]:
             start_date = st.date_input(
                 "Select start date:",
-                value=datetime.now() + timedelta(days=-365),
-                min_value=datetime.now() + timedelta(days=-365),
+                value=datetime.now() - timedelta(days=DEFAULT_LOOKBACK_DAYS),
+                min_value=datetime.now() - timedelta(days=DEFAULT_LOOKBACK_DAYS),
                 max_value=datetime.now(),
             )
         with date_columns[1]:
@@ -44,19 +55,46 @@ def main():
                 max_value=datetime.now(),
             )
 
+    start = datetime.combine(start_date, datetime.min.time())
+    end = datetime.combine(end_date, datetime.max.time()) + timedelta(days=1)
+    return start, end
+
+
+def render_user_selector() -> list[str] | None:
+    """Render user selector and return selected users, or None if invalid."""
     user_names = st.pills(
-        label="Select users:", options=users, selection_mode="multi", default=users
+        label="Select users:",
+        options=USERS,
+        selection_mode="multi",
+        default=USERS,
     )
 
     if len(user_names) < 1:
         st.error("Please select at least 1 user")
-        return
+        return None
+    return user_names
 
-    start: datetime = datetime(start_date.year, start_date.month, start_date.day)
-    end: datetime = datetime(end_date.year, end_date.month, end_date.day) + timedelta(
-        days=1
-    )
 
+def render_metrics(
+    num_tracks: int, distinct_artists: int, distinct_albums: int, duration_hrs: float
+) -> None:
+    """Render the top metrics row."""
+    with st.container(horizontal=True, gap="large", border=True):
+        cols = st.columns(4)
+        with cols[0]:
+            st.metric("Tracks", num_tracks, width="content")
+        with cols[1]:
+            st.metric("Artists", distinct_artists, width="content")
+        with cols[2]:
+            st.metric("Albums", distinct_albums, width="content")
+        with cols[3]:
+            st.metric("Play Time", f"{round(duration_hrs, 1)}hrs", width="content")
+
+
+def compute_date_indices(
+    start: datetime, end: datetime
+) -> tuple[pd.DataFrame, list[str]]:
+    """Compute date index and month labels for the date range."""
     num_days = (end - start).days
     dates_index = pd.DataFrame(
         {"dates": [(start + timedelta(days=x)).date() for x in range(num_days - 1)]}
@@ -68,170 +106,96 @@ def main():
         }
     )
     month_years = months_frame["months"].dt.strftime("%b %y").to_list()
+    return dates_index, month_years
 
-    df: pd.DataFrame = load_data()
 
+def main() -> None:
+    st.title(PAGE_TITLE)
+
+    start, end = render_date_selector()
+    user_names = render_user_selector()
+
+    if user_names is None:
+        return
+
+    dates_index, month_years = compute_date_indices(start, end)
+
+    df = load_data()
+
+    # Compute data
     top_artists = get_top_artists(df=df, user_names=user_names, start=start, end=end)
-    distinct_artists = len(set(top_artists["artist"].to_list()))
     top_tracks = get_top_tracks(df=df, user_names=user_names, start=start, end=end)
     top_albums = get_top_albums(df=df, user_names=user_names, start=start, end=end)
     top_genres = get_top_genres(df=df, user_names=user_names, start=start, end=end)
-    distinct_albums = len(set(top_albums["album_name"].to_list()))
     all_tracks = get_all_tracks(df=df, user_names=user_names, start=start, end=end)
-    num_tracks = all_tracks.shape[0]
-    duration = all_tracks["duration_ms"].sum() / 3600000
     listens_per_day = get_listens_per_day(
         df=df, user_names=user_names, start=start, end=end, dates_index=dates_index
     )
-    latest_tracks = get_latest_tracks(
-        df=df, user_names=user_names, start=start, end=end
-    )
-    # listens_by_hour_of_day = get_listens_by_hour_of_day(
-    # df=df, user_names=user_names, start=start, end=end, num_tracks=num_tracks
-    # )
 
-    with st.container(horizontal=True, gap="large", border=True):
-        cols = st.columns(4)
+    # Compute metrics
+    distinct_artists = len(set(top_artists["artist"].to_list()))
+    distinct_albums = len(set(top_albums["album_name"].to_list()))
+    num_tracks = all_tracks.shape[0]
+    duration_hrs = all_tracks["duration_ms"].sum() / 3600000
 
-        with cols[0]:
-            st.metric(
-                "Tracks",
-                num_tracks,
-                width="content",
-            )
+    render_metrics(num_tracks, distinct_artists, distinct_albums, duration_hrs)
 
-        with cols[1]:
-            st.metric(
-                "Artists",
-                distinct_artists,
-                width="content",
-            )
-
-        with cols[2]:
-            st.metric(
-                "Albums",
-                distinct_albums,
-                width="content",
-            )
-
-        with cols[3]:
-            st.metric(
-                "Play Time",
-                f"{round(duration, 1)}hrs",
-                width="content",
-            )
-
+    # Charts row 1
     cols = st.columns(2)
-
     with cols[0].container(border=True, height="stretch"):
         st.text("Listens per day")
-        st.altair_chart(
-            alt.Chart(listens_per_day)
-            .mark_line(size=1)
-            .transform_window(
-                avg_listens="mean(listens)",
-                frame=[-14, 0],
-                groupby=["user"],
-            )
-            .encode(
-                alt.X("date:T"),
-                alt.Y("avg_listens:Q").title("avg listens in last 2 weeks"),
-                alt.Color("user:N"),
-            )
-        )
+        st.altair_chart(create_listens_per_day_chart(listens_per_day))
 
     with cols[1].container(border=True, height="stretch"):
         st.text("Genres")
-        st.altair_chart(
-            alt.Chart(top_genres)
-            .mark_bar()
-            .encode(
-                alt.X("genre:N").sort("-y"), alt.Y("count:Q").title("total listens")
-            )
-        )
+        st.altair_chart(create_genres_chart(top_genres))
 
+    # Distribution charts (only for multiple users)
     if len(user_names) > 1:
         cols = st.columns(2)
         with cols[0].container(border=True, height="stretch"):
             st.text("Listen Distribution")
-            st.altair_chart(
-                alt.Chart(listens_per_day)
-                .mark_arc()
-                .transform_aggregate(
-                    sum="sum(listens)",
-                    groupby=["user"],
-                )
-                .encode(
-                    alt.Theta("sum:Q"),
-                    alt.Color("user:N"),
-                )
-            )
+            st.altair_chart(create_listen_distribution_pie_chart(listens_per_day))
 
         with cols[1].container(border=True, height="stretch"):
             st.text("Monthly Listen Distribution")
             st.altair_chart(
-                alt.Chart(listens_per_day)
-                .mark_bar()
-                .transform_aggregate(
-                    sum="sum(listens)",
-                    groupby=["user", "month_year"],
-                )
-                .encode(
-                    alt.X("month_year:O", title="month", sort=month_years),
-                    alt.Y("sum:Q", title="listens").stack("normalize"),
-                    alt.Color("user:N"),
-                )
-                .configure_legend(orient="bottom")
+                create_monthly_distribution_chart(listens_per_day, month_years)
             )
 
+    # Top items section
     with st.container(horizontal=True, gap="large"):
         cols = st.columns(3, border=True)
-        with cols[0]:
-            tt = top_tracks[:10].to_dict(orient="records")
-            st.text("Top Tracks")
-            for i, t in enumerate(tt):
-                with st.container(horizontal=True, border=True):
-                    inner_cols = st.columns(3, gap=None)
-                    with inner_cols[0]:
-                        st.image(t["album_image"], width=100)
-                    with inner_cols[1]:
-                        st.markdown(f"**{t["artist_name"]}**")
-                        st.markdown(f"{t["name"]}")
-                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
-                    with inner_cols[2]:
-                        st.metric(label="plays", value=t["count"])
 
-        with cols[2]:
-            ta = top_albums[:10].to_dict(orient="records")
-            st.text("Top Albums")
-            for i, t in enumerate(ta):
-                with st.container(horizontal=True, border=True):
-                    inner_cols = st.columns(3, gap=None)
-                    with inner_cols[0]:
-                        st.image(t["album_image"], width=100)
-                    with inner_cols[1]:
-                        st.markdown(f"**{t["artist_name"]}**")
-                        st.markdown(f"{t["album_name"]}")
-                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
-                    with inner_cols[2]:
-                        st.metric(label="plays", value=t["count"])
+        with cols[0]:
+            render_top_items(
+                title="Top Tracks",
+                items=top_tracks[:TOP_ITEMS_LIMIT].to_dict(orient="records"),
+                image_key="album_image",
+                primary_text_key="artist_name",
+                secondary_text_key="name",
+                count_key="count",
+            )
 
         with cols[1]:
-            ta = top_artists[:10].to_dict(orient="records")
-            st.text("Top Artists")
-            for i, t in enumerate(ta):
-                with st.container(
-                    horizontal=True,
-                    border=True,
-                ):
-                    inner_cols = st.columns(3, gap=None)
-                    with inner_cols[0]:
-                        st.image(t["artist_image"], width=100)
-                    with inner_cols[1]:
-                        st.markdown(f"**{t["artist"]}**")
-                        st.badge(t["user_name"], color=user_colours[t["user_name"]])
-                    with inner_cols[2]:
-                        st.metric(label="plays", value=t["plays"])
+            render_top_items(
+                title="Top Artists",
+                items=top_artists[:TOP_ITEMS_LIMIT].to_dict(orient="records"),
+                image_key="artist_image",
+                primary_text_key="artist",
+                secondary_text_key=None,
+                count_key="plays",
+            )
+
+        with cols[2]:
+            render_top_items(
+                title="Top Albums",
+                items=top_albums[:TOP_ITEMS_LIMIT].to_dict(orient="records"),
+                image_key="album_image",
+                primary_text_key="artist_name",
+                secondary_text_key="album_name",
+                count_key="count",
+            )
 
 
 if __name__ == "__main__":

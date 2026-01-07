@@ -4,7 +4,7 @@ from datetime import datetime
 import streamlit as st
 import requests
 
-cols = [
+LATEST_TRACKS_COLS = [
     "name",
     "artist_name",
     "artist_image",
@@ -13,7 +13,6 @@ cols = [
     "user_name",
     "album_image",
 ]
-users = ["Dan", "Fred", "George", "Claire", "Theo"]
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -146,6 +145,6 @@ def get_listens_by_hour_of_day(
 def get_latest_tracks(
     df: pd.DataFrame, user_names: list, start: datetime, end: datetime
 ):
-    return df.sort_values(by="played_at", ascending=False)[cols][
+    return df.sort_values(by="played_at", ascending=False)[LATEST_TRACKS_COLS][
         df["user_name"].isin(user_names)
     ][df["played_at"] > start][df["played_at"] <= end].reset_index(drop=True)
