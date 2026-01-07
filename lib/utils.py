@@ -13,7 +13,7 @@ cols = [
     "user_name",
     "album_image",
 ]
-users = ["Dan", "Fred", "George", "Theo"]
+users = ["Dan", "Fred", "George", "Claire", "Theo"]
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
