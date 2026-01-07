@@ -14,11 +14,12 @@ st.set_page_config(
     layout="wide",
 )
 
-users = ["Dan", "Fred", "George", "Theo"]
+users = ["Dan", "Fred", "George", "Claire", "Theo"]
 user_colours = {
     "Dan": "red",
     "Fred": "green",
     "George": "blue",
+    "Claire": "violet",
     "Theo": "orange",
 }
 
