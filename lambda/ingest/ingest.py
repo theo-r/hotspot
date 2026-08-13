@@ -91,46 +91,58 @@ class IngestManager:
             raise (Exception)
 
 
+def ingest_user(ingest_manager: IngestManager, cache: dict):
+    user_name = cache["id"]
+    user_token_dict = cache["access_token"]
+    watermark = ingest_manager.get_current_watermark_v2(id=user_name)
+    cache_handler = MemoryCacheHandler(user_token_dict)
+    auth_manager = SpotifyOAuth(cache_handler=cache_handler, scope=ingest_manager.SCOPE)
+    sp = spotipy.Spotify(auth_manager=auth_manager)
+    logger.info(f"API call for {user_name}")
+    rp_json = sp.current_user_recently_played(after=watermark)
+
+    # Persist before the early return below. Spotipy refreshes on demand and
+    # Spotify can hand back a rotated refresh token, so returning early on a
+    # quiet hour would drop the only copy of a token we still need.
+    new_token_info = auth_manager.get_cached_token()
+    if new_token_info != user_token_dict:
+        ingest_manager.update_cache(id=user_name, token=new_token_info)
+
+    if not rp_json["cursors"]:
+        logger.info("No new tracks")
+        return
+
+    artists = sp.artists(
+        [item["track"]["artists"][0]["id"] for item in rp_json["items"]]
+    )
+    rp_json["artists"] = artists["artists"]
+
+    new_watermark = rp_json["cursors"]["after"]
+    new_tracks = len(rp_json["items"])
+    logger.info(f"Found {new_tracks} new track(s)")
+    fname = datetime.utcnow().strftime(f"landing/{user_name}/%Y/%m/%d/%H-%M.json")
+    ingest_manager.upload_json(ingest_manager.bucket_name, fname, rp_json)
+
+    if watermark != new_watermark:
+        ingest_manager.update_watermark_v2(id=user_name, new_watermark=new_watermark)
+
+
 def lambda_handler(event, context):
     logger.info(f"Python version: {sys.version}")
     ingest_manager = IngestManager()
     # cached tokens for each user
     caches = ingest_manager.get_caches()
+    failed = []
 
+    # One user's expired token must not stop the others being ingested
     for cache in caches:
-        user_name = cache["id"]
-        user_token_dict = cache["access_token"]
-        watermark = ingest_manager.get_current_watermark_v2(id=user_name)
-        cache_handler = MemoryCacheHandler(user_token_dict)
-        auth_manager = SpotifyOAuth(
-            cache_handler=cache_handler, scope=ingest_manager.SCOPE
-        )
-        sp = spotipy.Spotify(auth_manager=auth_manager)
-        logger.info(f"API call for {user_name}")
-        rp_json = sp.current_user_recently_played(after=watermark)
+        try:
+            ingest_user(ingest_manager, cache)
+        except Exception as e:
+            logger.error(f"Ingest failed for {cache['id']}: {e}")
+            failed.append(cache["id"])
 
-        if not rp_json["cursors"]:
-            logger.info("No new tracks")
-            continue
-
-        artists = sp.artists(
-            [item["track"]["artists"][0]["id"] for item in rp_json["items"]]
-        )
-        rp_json["artists"] = artists["artists"]
-
-        new_watermark = rp_json["cursors"]["after"]
-        new_tracks = len(rp_json["items"])
-        logger.info(f"Found {new_tracks} new track(s)")
-        fname = datetime.utcnow().strftime(f"landing/{user_name}/%Y/%m/%d/%H-%M.json")
-        ingest_manager.upload_json(ingest_manager.bucket_name, fname, rp_json)
-        new_token_info = auth_manager.get_cached_token()
-
-        if watermark != new_watermark:
-            ingest_manager.update_watermark_v2(
-                id=user_name, new_watermark=new_watermark
-            )
-
-        if user_token_dict["access_token"] != new_token_info["access_token"]:
-            ingest_manager.update_cache(id=user_name, token=new_token_info)
+    if failed:
+        raise RuntimeError(f"Ingest failed for: {', '.join(failed)}")
 
     return "200"
